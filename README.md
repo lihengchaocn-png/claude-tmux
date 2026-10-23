@@ -53,3 +53,7 @@ bash scripts/install.sh all      # 以上全部
 展示图是用 `docs/src/scene.html` 仿真渲染的（演示数据），改了配色后可以用 `bash docs/src/render.sh` 重新生成。
 
 `SKILL.md` 是给 Claude Code 用的 skill 说明（放在 `~/.claude/skills/terminal-setup/` 下即可被 Claude 识别），里面有更详细的实现细节。
+
+## License
+
+[MIT](LICENSE)

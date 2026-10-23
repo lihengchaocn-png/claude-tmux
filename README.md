@@ -1,13 +1,15 @@
-# tmux-claude-iterm2-setup
+# claude-tmux
 
 **English** | [中文](README.zh-CN.md)
 
-A macOS terminal setup (zsh + vim + tmux + iTerm2) built around two ideas:
+**An elegant TUI for Claude, based on tmux.** A three-level Session · Window · Pane design, built for working with several Claude Code agents at once, plus the rest of a macOS terminal setup (zsh, vim, iTerm2).
+
+Two ideas:
 
 1. **[Session · Window · Pane, one job each](#1-session--window--pane-one-job-each)**: a clear hierarchy that works equally well with the mouse and the keyboard.
 2. **[Working alongside several AI agents](#2-working-alongside-several-claudes)**: one session per agent, with Claude Code's state shown as colored badges in the tmux status bar, plus your remaining limits and daily usage.
 
-![See at a glance which Claude is waiting for you](docs/img/en/hero.gif)
+![claude-tmux: Session · Window · Pane, and working with agents](docs/img/en/hero.gif)
 
 ## 1. Session · Window · Pane, one job each
 
@@ -107,8 +109,8 @@ Each kind of number goes where it belongs:
 ## Install
 
 ```bash
-git clone https://github.com/lihengchaocn-png/tmux-claude-iterm2-setup.git
-cd tmux-claude-iterm2-setup
+git clone https://github.com/lihengchaocn-png/claude-tmux.git
+cd claude-tmux
 bash scripts/install.sh shell    # zsh + Homebrew CLI tools + uv (overwrites ~/.zshrc)
 bash scripts/install.sh vim
 bash scripts/install.sh tmux

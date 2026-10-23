@@ -126,7 +126,7 @@ cp ~/.vimrc $S/vim/vimrc
 cp ~/.tmux.conf $S/tmux.conf
 cp ~/.config/tmux/mouse-menus.conf $S/mouse-menus.conf```
 
-本目录是 git 仓库，远程为 GitHub 公开仓库 `lihengchaocn-png/tmux-claude-iterm2-setup`（提交身份已在仓库本地设为 GitHub noreply 邮箱，全局 git 邮箱是公司邮箱，不要用）。同步完 `git commit` 并 `git push`；提交前确认没有带入个人/公司信息（绝对路径用 `$HOME`）。
+本目录是 git 仓库，远程为 GitHub 公开仓库 `lihengchaocn-png/claude-tmux`（2026-10-23 由 tmux-claude-iterm2-setup 改名）（提交身份已在仓库本地设为 GitHub noreply 邮箱，全局 git 邮箱是公司邮箱，不要用）。同步完 `git commit` 并 `git push`；提交前确认没有带入个人/公司信息（绝对路径用 `$HOME`）。
 
 别名/函数/插件有增删时，同步更新上面 zsh 要点里的表格；新依赖的 brew 包加进 `install.sh` 的 `install_shell`。
 

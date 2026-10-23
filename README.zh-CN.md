@@ -1,13 +1,15 @@
-# tmux-claude-iterm2-setup
+# claude-tmux
 
 [English](README.md) | **中文**
 
-macOS 终端环境配置（zsh + vim + tmux + iTerm2），围绕两个想法：
+**优雅的 Claude TUI，基于 tmux。** Session · Window · Pane 三级设计，专为同时和多个 Claude Code agent 协作而做；另附一套 macOS 终端配置（zsh、vim、iTerm2）。
+
+两个核心想法：
 
 1. **[Session · Window · Pane 三层分工](#1-session--window--pane-三层分工)**：层次清楚，鼠标和键盘都一样顺手。
 2. **[和多个 AI agent 一起干活](#2-和多个-claude-一起干活)**：一个 agent 一个 session，Claude Code 的状态直接显示在 tmux 状态栏上，还能看到剩余额度和每日用量。
 
-![一眼看出哪个 Claude 在等你](docs/img/zh/hero.gif)
+![claude-tmux：Session · Window · Pane 三级设计与 agent 协作](docs/img/zh/hero.gif)
 
 ## 1. Session · Window · Pane 三层分工
 
@@ -102,8 +104,8 @@ Claude Code 的 hook 把每个 pane 的状态写进 tmux 选项，状态栏据�
 ## 安装
 
 ```bash
-git clone https://github.com/lihengchaocn-png/tmux-claude-iterm2-setup.git
-cd tmux-claude-iterm2-setup
+git clone https://github.com/lihengchaocn-png/claude-tmux.git
+cd claude-tmux
 bash scripts/install.sh shell    # zsh + Homebrew CLI 工具 + uv（会覆盖 ~/.zshrc）
 bash scripts/install.sh vim
 bash scripts/install.sh tmux

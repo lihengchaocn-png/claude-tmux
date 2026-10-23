@@ -136,30 +136,15 @@ const claudeRun=(fr)=>`<span class="c-dim">&gt;</span> 给 /orders 接口加分�
 <span class="c-a-red c-r">${'✻✳✢·'[fr%4]}</span> <span class="c-r">Writing tests…</span> <span class="c-dim">(esc to interrupt)</span>`;
 
 let html='';
-if(scene==='hero'){
-  // 0-3：后台在跑；4-5：docs 需要确认（状态栏弹提示）；6-7：红底 ! 常驻；8-11：prefix G 跳过去
-  const phase=f<4?0:f<6?1:f<8?2:3;
-  const docs=phase===0?'run':'ask';
-  let sessions,windows,body,msg=null;
-  if(phase<3){
-    sessions=[['main','',true],['api-server','run',false],['docs',docs,false],['frontend','done',false],['ml-train','',false]];
-    windows=[['1:zsh*','',true],['2:logs','',false]];
-    body=`<div class="panes" style="height:440px"><div class="pane">${shell}</div></div>`;
-    if(phase===1) msg='Claude 在 docs:1 等你确认（prefix G 跳过去）';
-  }else{
-    sessions=[['main','',false],['api-server','run',false],['docs','ask',true],['frontend','done',false],['ml-train','',false]];
-    windows=[['1:claude*','ask',true],['2:server','run',false]];
-    body=`<div class="panes" style="height:440px"><div class="pane">${claudeAsk}</div></div>`;
-  }
-  const caps=['<span class="chip bd-run">◐</span> 后台的 Claude 在跑：蓝底转圈',
-              '<span class="chip bd-ask">!</span> docs 里的 Claude 需要你确认：状态栏弹出提示',
-              '<span class="chip bd-ask">!</span> 红底标记常驻，直到你处理',
-              '按 <kbd>prefix G</kbd> 一键跳到最早等你的那个'];
-  html=`<div class="stage" style="width:1200px;height:720px">
-    <div class="head"><h1>一眼看出哪个 Claude 在等你</h1><p>Claude Code hooks → tmux 状态栏彩色徽标</p></div>
-    ${win('tmux',bar(sessions,windows,f,msg)+body)}
-    <div class="cap">${caps[phase]}</div></div>`;
-}
+const testOut=`<span class="c-g">❯</span> npm test -- --watch
+
+ <span class="pass">PASS</span> src/routes/orders.test.ts
+ <span class="pass">PASS</span> src/lib/paginate.test.ts
+ <span class="runs">RUNS</span> src/routes/users.test.ts
+
+<span class="b">Tests:</span>  <span class="c-g">24 passed</span>, 24 total
+<span class="b">Time:</span>   3.12 s
+<span class="c-dim">Watching for file changes…</span>`;
 if(scene==='states'){
   const card=(mini,t,p,ev)=>`<div class="card"><div class="mini">${mini}</div><h3>${t}</h3><p>${p}</p><div class="ev">${ev}</div></div>`;
   html=`<div class="stage" style="width:1200px;height:400px">
@@ -207,15 +192,7 @@ if(scene==='menu'){
 // ---------- 操作哲学 / agent 工作流（新场景直接用 T(中文, 英文)） ----------
 const T=(zh,en)=>lang==='en'?en:zh;
 const K=k=>`<kbd class="k">${k}</kbd>`;
-const testOut=`<span class="c-g">❯</span> npm test -- --watch
 
- <span class="pass">PASS</span> src/routes/orders.test.ts
- <span class="pass">PASS</span> src/lib/paginate.test.ts
- <span class="runs">RUNS</span> src/routes/users.test.ts
-
-<span class="b">Tests:</span>  <span class="c-g">24 passed</span>, 24 total
-<span class="b">Time:</span>   3.12 s
-<span class="c-dim">Watching for file changes…</span>`;
 
 if(scene==='layout'){
   const sessions=[['main','',false],['api-server','run',true],['docs','ask',false],['frontend','done',false]];
@@ -337,6 +314,47 @@ ${tbl}
   html=`<div class="stage" style="width:1200px;height:740px">
     <div class="head"><h1>${T('额度和用量，各放各的位置','Limits and usage, each in its place')}</h1><p>${T('账号级的放全局，会话级的放会话里，偶尔看的放弹窗','Account-wide goes global, per-session stays in the session, occasional goes in a popup')}</p></div>
     ${win('tmux',bar(sessions,windows,2,null,lim)+body)}</div>`;
+}
+
+if(scene==='hero2'){
+  // 0-1 Session 栏 · 2-3 Window 栏 · 4-5 Pane · 6 提示条 · 7 红底 ! · 8-9 prefix G 跳过去 · 10-11 批准后继续
+  const ph=f<2?'s':f<4?'w':f<6?'p':f<7?'ban':f<8?'red':f<10?'jump':'ok';
+  const inDocs=ph==='jump'||ph==='ok';
+  const docsSt=['s','w','p','ok'].includes(ph)?'run':'ask';
+  const sessions=[['main','',false],['api-server','run',!inDocs],['docs',docsSt,inDocs],['frontend','done',false]];
+  const windows=inDocs?[['1:claude*',ph==='ok'?'run':'ask',true],['2:logs','',false]]:[['1:claude*','run',true],['2:server','',false]];
+  let L=sessions.map(x=>item(x[0],x[1],x[2],f)).join(''), R=windows.map(x=>item(x[0],x[1],x[2],f)).join('');
+  if(ph==='s') L=`<span class="zone zs">${L}<span class="tag ts">${T('Session 栏 · 一个项目 / 一个 agent','Session bar · one project / one agent')}</span></span>`;
+  if(ph==='w') R=`<span class="zone zw">${R}<span class="tag tw">${T('Window 栏 · 项目里的不同视图','Window bar · views inside a project')}</span></span>`;
+  const lim=`<span style="color:#808080"> 5h </span><span style="color:#87d787">23%</span><span style="color:#808080"> 7d </span><span style="color:#87d787">41%</span>`;
+  const msg=ph==='ban'?`<div class="msg">${T('Claude 在 docs:1 等你确认（prefix G 跳过去）','Claude in docs:1 is waiting for you (prefix G to jump)')}</div>`:'';
+  const st=`<div class="status"><div class="l">${L} </div><div class="r">${R}${lim}<span style="color:#bcbcbc"> 16:20 </span></div>${msg}</div>`;
+  const okText=`<span class="c-dim">&gt;</span> ${T('把 README 的安装步骤改成中英双语，然后重新生成文档站','Make the README install steps bilingual, then rebuild the docs site')}
+
+<span class="c-g">●</span> <span class="b">Update</span>(README.md)
+  <span class="c-dim">⎿  Updated README.md with 24 additions and 9 removals</span>
+
+<span class="c-g">●</span> <span class="b">Bash</span>(npm run build:docs)
+  <span class="c-dim">⎿  Built 42 pages in 3.1s</span>
+
+<span class="c-r">${'✻✳✢·'[f%4]}</span> <span class="c-r">Updating the changelog…</span> <span class="c-dim">(esc to interrupt)</span>`;
+  let body;
+  if(inDocs) body=`<div class="panes" style="height:420px"><div class="pane">${ph==='jump'?claudeAsk:okText}</div></div>`;
+  else{
+    const hp=ph==='p', zp=hp?' zp':'', pt='style="padding-top:40px"';
+    body=`<div class="panes" style="height:420px"><div class="pane${zp}" ${pt}>${claudeRun(f)}${hp?`<span class="tag tp">${T('Pane · Claude 写代码','Pane · Claude writes code')}</span>`:''}</div><div class="vsep"></div><div class="pane${zp}" ${pt}>${testOut}${hp?`<span class="tag tp">${T('Pane · 测试同步跑','Pane · tests run alongside')}</span>`:''}</div></div>`;
+  }
+  const caps={s:T('① Session：一个项目或 agent 一个，颜色就是它的状态','① Sessions: one per project or agent, colored by its state'),
+    w:T('② Window：同一项目里的不同视图','② Windows: different views of one project'),
+    p:T('③ Pane：需要同时看的放一屏','③ Panes: what you watch together, side by side'),
+    ban:T('<span class="chip bd-ask">!</span> docs 里的 Claude 需要你：弹出提示','<span class="chip bd-ask">!</span> Claude in docs needs you: a banner pops up'),
+    red:T('<span class="chip bd-ask">!</span> 红底标记常驻，直到你处理','<span class="chip bd-ask">!</span> The red badge stays until you deal with it'),
+    jump:T('按 <kbd>prefix G</kbd> 跳过去，直接看到它在问什么','Press <kbd>prefix G</kbd> to jump straight to the question'),
+    ok:T('<span class="chip bd-run">◐</span> 批准后变回蓝色，回去干自己的事','<span class="chip bd-run">◐</span> Approve, it turns blue, back to your own work')};
+  html=`<div class="stage" style="width:1200px;height:720px">
+    <div class="head"><h1>claude-tmux</h1><p>${T('优雅的 Claude TUI，基于 tmux：Session · Window · Pane 三级设计 + 多 agent 协作','An elegant TUI for Claude, based on tmux: a three-level Session · Window · Pane design, built for working with agents')}</p></div>
+    ${win('tmux',st+body)}
+    <div class="cap">${caps[ph]}</div></div>`;
 }
 
 // lang=en：在最终 HTML 上按 中文→英文 替换（长串先替换，避免被短串截断）

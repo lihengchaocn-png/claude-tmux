@@ -2,7 +2,7 @@ import sys
 from PIL import Image
 d,o=sys.argv[1],sys.argv[2]
 W=1600
-dur=[600]*4+[1100,1100]+[700,700]+[900]*4
+dur=[1000]*6+[1300,900]+[1200,1200]+[900,900]
 frames=[]
 for i in range(12):
     im=Image.open(f'{d}/frame-{i}.png').convert('RGB')
@@ -10,7 +10,7 @@ for i in range(12):
     frames.append(im)
 # 所有帧共用一个调色板，避免闪烁
 # 把各阶段的帧竖向拼起来统一取色，保证提示条黄色、红绿灯等都在调色板里
-picks=[frames[i] for i in (0,4,6,8)]
+picks=[frames[i] for i in (0,2,4,6,8,10)]
 sheet=Image.new('RGB',(W,sum(p.height for p in picks)))
 y=0
 for p in picks: sheet.paste(p,(0,y)); y+=p.height

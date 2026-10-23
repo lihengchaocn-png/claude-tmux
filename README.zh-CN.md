@@ -33,6 +33,20 @@
 
 前缀是 `C-a`。移动焦点用 vim 的 `h j k l`。分屏会继承当前目录。
 
+**iTerm2 里免按前缀。** 最常用的操作在 Moshi Dark profile 里映射成了 Cmd 键，由 iTerm2 替你发 `C-a` + 键。Cmd 键不会传给终端里的程序，所以不会和 shell、vim、Claude Code 抢键。
+
+| 按键 | 作用 | 等价于 |
+|---|---|---|
+| `Cmd+D` / `Cmd+Shift+D` | 左右 / 上下分屏 | `C-a \|` / `C-a -` |
+| `Cmd+W` | 关闭 pane：空闲 shell 直接关；有程序在跑（claude、vim、ssh…）时再按一次 `x` 确认，按别的键取消 | `C-a x` |
+| `Cmd+T` | 新 window | `C-a c` |
+| `Cmd+1…9` | 切到第 N 个 window | `C-a 1…9` |
+| `Cmd+Option+←↓↑→` | 切换 pane | `C-a h/j/k/l` |
+| `Cmd+Shift+Enter` | 放大 / 还原 pane | `C-a z` |
+| `Cmd+G` / `Cmd+Shift+G` | Claude 列表 / 跳到最早等你的 | `C-a g` / `C-a G` |
+
+低频操作继续用前缀。`Cmd+G` 占用了 iTerm2 的“查找下一个”，搜索改用 tmux 的复制模式。
+
 ### pane ⇄ window 互转
 
 ![右键菜单](docs/img/zh/menus.png)

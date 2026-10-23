@@ -33,6 +33,20 @@ The rules behind it:
 
 Prefix is `C-a`. Movement uses vim's `h j k l`. Splits open in the current directory.
 
+**Skip the prefix in iTerm2.** The most frequent actions are mapped to Cmd keys in the Moshi Dark profile; iTerm2 sends `C-a` + key for you. Cmd never reaches terminal programs, so these don't clash with the shell, vim or Claude Code.
+
+| Keys | Action | Same as |
+|---|---|---|
+| `Cmd+D` / `Cmd+Shift+D` | split side / below | `C-a \|` / `C-a -` |
+| `Cmd+W` | close pane: an idle shell closes right away; if something is running (claude, vim, ssh…) press `x` again to confirm, any other key cancels | `C-a x` |
+| `Cmd+T` | new window | `C-a c` |
+| `Cmd+1…9` | go to window N | `C-a 1…9` |
+| `Cmd+Option+←↓↑→` | move between panes | `C-a h/j/k/l` |
+| `Cmd+Shift+Enter` | zoom / unzoom pane | `C-a z` |
+| `Cmd+G` / `Cmd+Shift+G` | Claude list / jump to the one waiting longest | `C-a g` / `C-a G` |
+
+Less frequent actions keep the prefix. `Cmd+G` replaces iTerm2's "Find Next"; search with tmux copy mode instead.
+
 ### Panes ⇄ windows
 
 ![Right-click menus](docs/img/en/menus.png)

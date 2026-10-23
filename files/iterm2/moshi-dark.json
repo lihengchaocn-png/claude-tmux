@@ -186,7 +186,88 @@
         "slogin",
         "telnet"
       ],
-      "Keyboard Map": {},
+      "Keyboard Map": {
+        "0x64-0x100000": {
+          "Action": 11,
+          "Text": "0x01 0x7c"
+        },
+        "0x44-0x120000": {
+          "Action": 11,
+          "Text": "0x01 0x2d"
+        },
+        "0x77-0x100000": {
+          "Action": 11,
+          "Text": "0x01 0x78"
+        },
+        "0x74-0x100000": {
+          "Action": 11,
+          "Text": "0x01 0x63"
+        },
+        "0x31-0x100000": {
+          "Action": 11,
+          "Text": "0x01 0x31"
+        },
+        "0x32-0x100000": {
+          "Action": 11,
+          "Text": "0x01 0x32"
+        },
+        "0x33-0x100000": {
+          "Action": 11,
+          "Text": "0x01 0x33"
+        },
+        "0x34-0x100000": {
+          "Action": 11,
+          "Text": "0x01 0x34"
+        },
+        "0x35-0x100000": {
+          "Action": 11,
+          "Text": "0x01 0x35"
+        },
+        "0x36-0x100000": {
+          "Action": 11,
+          "Text": "0x01 0x36"
+        },
+        "0x37-0x100000": {
+          "Action": 11,
+          "Text": "0x01 0x37"
+        },
+        "0x38-0x100000": {
+          "Action": 11,
+          "Text": "0x01 0x38"
+        },
+        "0x39-0x100000": {
+          "Action": 11,
+          "Text": "0x01 0x39"
+        },
+        "0xf702-0x380000": {
+          "Action": 11,
+          "Text": "0x01 0x68"
+        },
+        "0xf701-0x380000": {
+          "Action": 11,
+          "Text": "0x01 0x6a"
+        },
+        "0xf700-0x380000": {
+          "Action": 11,
+          "Text": "0x01 0x6b"
+        },
+        "0xf703-0x380000": {
+          "Action": 11,
+          "Text": "0x01 0x6c"
+        },
+        "0xd-0x120000": {
+          "Action": 11,
+          "Text": "0x01 0x7a"
+        },
+        "0x67-0x100000": {
+          "Action": 11,
+          "Text": "0x01 0x67"
+        },
+        "0x47-0x120000": {
+          "Action": 11,
+          "Text": "0x01 0x47"
+        }
+      },
       "Link Color": {
         "Alpha Component": 1,
         "Blue Component": 0.9372549019607843,

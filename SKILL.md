@@ -112,6 +112,8 @@ vim-plug 管理：vim-sensible、NERDTree、commentary、surround、repeat、fug
   - 边距 左右 14 / 上下 8；无限回滚；开启 Mouse Reporting（tmux 鼠标需要）；Terminal Type `xterm-256color`。
 - 全局：主题 Minimal（`TabStyleWithAutomaticOption=5`）、单 tab 隐藏 tab bar、隐藏滚动条、允许剪贴板访问（OSC 52）、关闭按住弹重音。
 - 指针动作（plist `PointerActions`，均为 iTerm2 默认，未纳入脚本）：右键=上下文菜单、中键=粘贴、三指左右切 tab、上下切窗口。
+- Cmd 免前缀：Moshi Dark profile 的 `Keyboard Map`（Action 11 = Send Hex Code，发 `0x01` + tmux 键；键名格式 `0x字符-0x修饰键`，Cmd=0x100000、Shift=0x20000、Option=0x80000，方向键另加 NumPad 0x200000）：⌘D/⌘⇧D 分屏、⌘W 关 pane、⌘T 新 window、⌘1-9、⌘⌥方向键切 pane、⌘⇧Enter 放大、⌘G/⌘⇧G Claude 列表/跳转。Dynamic Profile 改了会自动重载，不用重启 iTerm2。
+- `prefix x`（⌘W）：前台是 zsh/bash/sh/fish 直接 kill-pane，否则 `confirm-before -c x` 再按 x 确认；用 shell 白名单而不是程序名，因为 Claude Code 的进程名是版本号。
 - tmux -CC：tmux window 以 tab 打开、不自动隐藏 client session、不用专用 profile、不同步剪贴板、不暂停警告、不用 iTerm 状态栏。
 
 ## 修改配置的工作流

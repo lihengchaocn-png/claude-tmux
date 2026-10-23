@@ -126,7 +126,7 @@ Each kind of number goes where it belongs:
 
 ## Also included
 
-- **tmux**: vi copy mode (copies to the macOS clipboard). Sessions are restored with resurrect + continuum. zsh auto-attaches to a `main` session. Requires tmux ≥ 3.8.
+- **tmux**: vi copy mode (copies to the macOS clipboard). Window names follow what's in them: Claude windows take the conversation topic, idle shells the directory name. Closing a session's last pane switches to another session instead of leaving tmux. Sessions are restored with resurrect + continuum. zsh auto-attaches to a `main` session. Requires tmux ≥ 3.8.
 - **zsh**: no framework. Uses eza / bat / fzf / zoxide / starship / autosuggestions / syntax-highlighting, plus small fzf helpers `f`, `fv`, `rgi`, `cproj`.
 - **vim**: vim-plug with NERDTree, fugitive, lightline, and more.
 - **iTerm2**: "Moshi Dark" dynamic profile (JetBrains Mono + Noto Sans Mono CJK) and the Minimal theme.

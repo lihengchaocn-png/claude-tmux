@@ -90,6 +90,8 @@ vim-plug 管理：vim-sensible、NERDTree、commentary、surround、repeat、fug
 - 状态栏 session 名右键：Switch To（非当前）、Clear Claude Mark（有 `@cc_s` 时）、Rename、Kill（当前 session 置灰）、New Session。session 和 window 标签右键都触发 `MouseDown3Status`，靠 `if -F "#{==:#{mouse_status_range},session}"` 分流；菜单项的条件写成 `##{?...}`，让 run-shell -C 只展开内层值、由 display-menu 判断显隐（否则展开成空串会被当成分隔线导致参数错位）。
 - 状态栏**左侧**列出所有 session（status-left），点击即切换（`range=session|…`），当前 session 绿底高亮；window 列表 `status-justify right` 靠右，紧挨日期时间（status-right）。
 
+**关闭最后一个 pane**：`detach-on-destroy off`，session 被关掉时切到另一个还在的 session，不退出 tmux；关掉最后一个 session 才退出。配合 Cmd+W（`prefix x`）用。
+
 **window 自动命名**（`automatic-rename-format`）：Claude Code 的进程名是版本号（如 `2.1.309`），所以按 `^[0-9]+.[0-9]+.[0-9]+$|^claude$` 识别它，取它写进 pane 标题的对话主题（去掉开头的 `✳`/转圈字符，截到 14 字）；标题还是默认的 `Claude Code` 时用目录名。空闲 shell 用目录名，其他程序用程序名。手动改过名（automatic-rename 关闭）的 window 不受影响。名字只在 pane 有新输出时刷新。正则里不能写 `{n}`，会和 tmux 格式的花括号冲突，用 `[.]` 重复代替。
 
 **其他**：状态栏在顶部、深灰底；`base-index 1`、`renumber-windows on`；`default-terminal tmux-256color` + RGB；`default-command "${SHELL}"`（非 login shell，避免 macOS `path_helper` 打乱 PATH）；history 50000；插件 tpm / tmux-sensible / tmux-resurrect / tmux-continuum（`@continuum-restore on`，开机自动恢复会话）；最后 `aggressive-resize off` 以兼容 iTerm2 `tmux -CC`。

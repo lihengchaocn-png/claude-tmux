@@ -17,6 +17,6 @@ for p in picks: sheet.paste(p,(0,y)); y+=p.height
 pal=sheet.quantize(colors=255,method=Image.Quantize.FASTOCTREE,kmeans=2)
 q=[f.quantize(palette=pal,dither=Image.Dither.NONE) for f in frames]
 q[0].save(o,save_all=True,append_images=q[1:],duration=dur,loop=0,optimize=True,disposal=1)
-for n in ['states','picker','menu']:
+for n in ['states','picker','menu','layout','keys','menus','agents']:
     im=Image.open(f'{d}/{n}.png').convert('RGB'); im=im.resize((W,round(im.height*W/im.width)),Image.LANCZOS)
     im.save(f'{o.rsplit("/",1)[0]}/{n}.png',optimize=True)

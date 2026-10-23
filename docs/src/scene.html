@@ -55,6 +55,30 @@ body{font-family:'JetBrains Mono','PingFang SC','Noto Sans Mono CJK SC',monospac
 .menu .sep{border-top:1px solid #9a9a9a;margin:10px 0}
 .menu .dis{color:#6a6a6a}
 .prow{display:grid;grid-template-columns:22px 110px 190px 1fr;white-space:pre}
+.zone{position:relative;outline:2px dashed var(--zc);outline-offset:1px}
+.zs{--zc:#c084fc}.zw{--zc:#22d3ee}.zp{position:relative;outline:2px dashed #fb923c;outline-offset:-5px}
+.tag{position:absolute;font-family:-apple-system,'PingFang SC',sans-serif;font-size:13px;line-height:18px;font-weight:600;padding:3px 10px;border-radius:6px;color:#111;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.4);z-index:5}
+.ts{background:#c084fc;left:0;top:30px}.tw{background:#22d3ee;right:0;top:30px}.tp{background:#fb923c;right:12px;bottom:12px}
+.prs{display:flex;gap:18px;width:100%}
+.pr{flex:1;font-family:-apple-system,'PingFang SC',sans-serif;color:#aab2c5;font-size:14px;line-height:22px;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+.pr b{display:block;color:#fff;font-size:16px;margin-bottom:4px}
+.pass{background:#4fc28c;color:#111;font-weight:700}.runs{background:#e5b567;color:#111;font-weight:700}
+kbd.k,.head kbd{font-family:'JetBrains Mono',monospace;font-size:.85em;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);border-bottom-width:2px;padding:0 6px;border-radius:5px;color:#fff}
+code{font-family:'JetBrains Mono',monospace;font-size:.9em;color:#fff;background:rgba(255,255,255,.1);padding:0 5px;border-radius:4px}
+.kcs{display:flex;gap:20px;width:100%}
+.kc{flex:1;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-top:4px solid var(--zc);padding:18px 20px;font-family:-apple-system,'PingFang SC',sans-serif;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.cs{--zc:#c084fc}.cw{--zc:#22d3ee}.cp{--zc:#fb923c}
+.kh{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}.kt{font-size:24px;font-weight:700;color:var(--zc)}.ks{font-size:13px;color:#8b93a7}
+.kg{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#8b93a7;margin:14px 0 6px;font-weight:600}
+.kc ul{list-style:none}.kc li{display:grid;grid-template-columns:118px 1fr;gap:10px;align-items:baseline;padding:6px 0;border-top:1px solid rgba(255,255,255,.07)}
+.kc li .act{color:#fff;font-size:14px;line-height:22px}.kc li .how{color:#aab2c5;font-size:13.5px;line-height:21px}
+.steps{display:grid;grid-template-columns:1fr 1fr;gap:20px;width:100%}
+.step{display:flex;gap:14px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);padding:18px;font-family:-apple-system,'PingFang SC',sans-serif;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.step>div:last-child{flex:1;min-width:0}
+.sn{flex:none;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#06b6d4);color:#fff;font-weight:700;font-size:17px;display:flex;align-items:center;justify-content:center}
+.step h3{color:#fff;font-size:18px;line-height:26px}.step p{color:#aab2c5;font-size:14px;line-height:22px;margin:4px 0 12px;min-height:44px}
+.mwin{border-radius:8px;overflow:hidden;background:var(--bg);border:1px solid rgba(255,255,255,.1);font-family:'JetBrains Mono','PingFang SC',monospace;font-size:13px}
+.mwin .status{font-size:13px}.mbody{padding:6px 10px;height:46px;white-space:pre;color:var(--fg)}
 </style></head>
 <body><div id="root"></div>
 <script>
@@ -176,6 +200,120 @@ if(scene==='menu'){
     <div class="head"><h1>可点击的 session 列表</h1><p>左键切换，右键菜单：切换 · 清除 Claude 标记 · 重命名 · 关闭 · 新建</p></div>
     ${win('tmux',bar(sessions,windows,2,null)+body)}</div>`;
 }
+// ---------- 操作哲学 / agent 工作流（新场景直接用 T(中文, 英文)） ----------
+const T=(zh,en)=>lang==='en'?en:zh;
+const K=k=>`<kbd class="k">${k}</kbd>`;
+const testOut=`<span class="c-g">❯</span> npm test -- --watch
+
+ <span class="pass">PASS</span> src/routes/orders.test.ts
+ <span class="pass">PASS</span> src/lib/paginate.test.ts
+ <span class="runs">RUNS</span> src/routes/users.test.ts
+
+<span class="b">Tests:</span>  <span class="c-g">24 passed</span>, 24 total
+<span class="b">Time:</span>   3.12 s
+<span class="c-dim">Watching for file changes…</span>`;
+
+if(scene==='layout'){
+  const sessions=[['main','',false],['api-server','run',true],['docs','ask',false],['frontend','done',false]];
+  const windows=[['1:claude*','run',true],['2:server','',false]];
+  const st=`<div class="status"><div class="l zone zs">${sessions.map(s=>item(s[0],s[1],s[2],1)).join('')} <span class="tag ts">${T('Session 栏 · 一个项目 / 一个 agent','Session bar · one project / one agent')}</span></div><div class="r"><span class="zone zw">${windows.map(w=>item(w[0],w[1],w[2],1)).join('')}<span class="tag tw">${T('Window 栏 · 项目里的不同视图','Window bar · views inside a project')}</span></span><span style="color:#bcbcbc"> 2026-10-23 16:20 </span></div></div>`;
+  const body=`<div class="panes" style="height:350px"><div class="pane zp" style="padding-top:40px">${claudeRun(2)}<span class="tag tp">${T('Pane · Claude 写代码','Pane · Claude writes code')}</span></div><div class="vsep"></div><div class="pane zp" style="padding-top:40px">${testOut}<span class="tag tp">${T('Pane · 测试同步跑','Pane · tests run alongside')}</span></div></div>`;
+  const pr=(t,d)=>`<div class="pr"><b>${t}</b><span>${d}</span></div>`;
+  html=`<div class="stage" style="width:1200px;height:760px">
+    <div class="head"><h1>${T('Session · Window · Pane 三层分工','Session · Window · Pane, one job each')}</h1><p>${T('越常用的越靠左、越显眼；三层都能点、能按、能右键','The more you use it, the further left it sits; every layer is clickable, keyable and right-clickable')}</p></div>
+    ${win('tmux',st+body)}
+    <div class="prs">
+      ${pr(T('Session = 上下文','Session = context'),T('一个项目或一个 agent 一个 session。放最左边，颜色就是 agent 状态，切 session 就是切任务。','One session per project or agent. Leftmost, colored by agent state; switching sessions is switching tasks.'))}
+      ${pr(T('Window = 视图','Window = view'),T('同一项目里的 Claude、dev server、日志。放右侧靠近时钟，次一级。','Claude, dev server, logs of the same project. On the right next to the clock, one level down.'))}
+      ${pr(T('Pane = 并排','Pane = side by side'),T('需要同时看的放一屏。pane 和 window 随时互转，布局跟着任务走。','Things you watch together. Panes and windows convert back and forth, so layout follows the task.'))}
+    </div></div>`;
+}
+
+if(scene==='keys'){
+  const li=(a,b)=>`<li><span class="act">${a}</span><span class="how">${b}</span></li>`;
+  const col=(cls,title,sub,mouse,keys)=>`<div class="kc ${cls}"><div class="kh"><span class="kt">${title}</span><span class="ks">${sub}</span></div>
+    <div class="kg">${T('鼠标','Mouse')}</div><ul>${mouse.join('')}</ul><div class="kg">${T('键盘','Keyboard')}</div><ul>${keys.join('')}</ul></div>`;
+  html=`<div class="stage" style="width:1200px;height:720px">
+    <div class="head"><h1>${T('键鼠都顺手','Mouse and keyboard, both first-class')}</h1><p>${T('前缀 ','Prefix ')}${K('C-a')}${T('，下面的键都在前缀之后按；方向键用 vim 的 ',', all keys below come after it; vim-style ')}${K('h j k l')}</p></div>
+    <div class="kcs">
+    ${col('cs','Session',T('状态栏左侧','left of the status bar'),[
+      li(T('左键点名字','Click a name'),T('切换','switch')),
+      li(T('右键名字','Right-click a name'),T('切换 · 清除 Claude 标记 · 重命名 · 关闭 · 新建','Switch · Clear Claude Mark · Rename · Kill · New')),
+    ],[
+      li(K('(')+' '+K(')'),T('上 / 下一个 session','previous / next session')),
+      li(K('s'),T('树状选择','tree picker')),
+      li(K('$'),T('重命名','rename')),
+      li(K('g')+' '+K('G'),T('Claude 列表 / 跳到等你的','Claude list / jump to the waiting one')),
+      li('<code>tn name</code>',T('shell 里：有则进入，无则新建','in shell: attach or create')),
+    ])}
+    ${col('cw','Window',T('状态栏右侧','right of the status bar'),[
+      li(T('左键点标签','Click a tab'),T('切换','switch')),
+      li(T('状态栏上滚轮','Wheel on the bar'),T('上 / 下一个','previous / next')),
+      li(T('Ctrl + 左键','Ctrl + click'),T('和当前 window 交换位置','swap with current')),
+      li(T('右键标签','Right-click a tab'),T('并入当前（左右 / 上下）· 重命名 · 关闭 · 新建','Join here (side / below) · Rename · Kill · New')),
+    ],[
+      li(K('c'),T('新建（当前目录）','new (current dir)')),
+      li(K('n')+' '+K('p')+' '+K('1-9'),T('切换','switch')),
+      li(K('a'),T('回到上一个','last window')),
+      li(K(',' ),T('重命名','rename')),
+      li(K('@')+' '+K('#'),T('选一个 window 并进来（左右 / 上下）','pull a window in (side / below)')),
+    ])}
+    ${col('cp','Pane',T('终端内容区','the content area'),[
+      li(T('点击','Click'),T('聚焦','focus')),
+      li(T('拖动边框','Drag a border'),T('调大小','resize')),
+      li(T('滚轮 / 拖选','Wheel / drag'),T('回看历史 / 复制','scroll back / copy')),
+      li(T('右键','Right-click'),T('分屏 · 浮动 · 交换 · 拆成 window · 缩放 · 关闭','Split · Float · Swap · Break to window · Zoom · Kill')),
+    ],[
+      li(K('|')+' '+K('-'),T('左右 / 上下分屏','split side / below')),
+      li(K('h j k l'),T('移动焦点','move focus')),
+      li(K('H J K L'),T('调大小（可连按）','resize (repeatable)')),
+      li(K('z'),T('全屏 / 还原','zoom / unzoom')),
+      li(K('!'),T('拆成独立 window','break out to a window')),
+      li(K('[')+' v y',T('复制模式，复制到剪贴板','copy mode → clipboard')),
+    ])}
+    </div></div>`;
+}
+
+if(scene==='menus'){
+  const sessions=[['main','',true],['api-server','run',false],['docs','',false],['frontend','done',false]];
+  const windows=[['1:claude*','run',true],['2:server','',false],['3:logs','',false]];
+  const row=(t,k,cls='')=>`<div class="row ${cls}"><span>${t}</span><span>(${k})</span></div>`;
+  const wm=`<div class="menu" style="right:150px;top:-1px;width:250px;padding:4px 0">
+<div class="row"><span style="margin:0 auto;padding:0">3:logs</span></div>
+${row('Join Here (Side)','j','hl')}${row('Join Here (Below)','J')}<div class="sep"></div>
+${row('Rename','n')}${row('Kill','X')}<div class="sep"></div>${row('New After','w')}${row('New At End','W')}</div>`;
+  const pm=`<div class="menu" style="left:300px;top:70px;width:250px;padding:4px 0">
+<div class="row"><span style="margin:0 auto;padding:0">1 (%3)</span></div>
+${row('Float','f')}${row('Horizontal Split','h')}${row('Vertical Split','v')}<div class="sep"></div>
+${row('Swap Up','u')}${row('Swap Down','d')}${row('Swap Marked','s','dis')}<div class="sep"></div>
+${row('Break to Window','b','hl')}${row('Kill','X')}${row('Respawn','R')}${row('Mark','m')}${row('Zoom','z')}</div>`;
+  const body=`<div class="panes" style="height:430px"><div class="pane">${claudeRun(1)}</div>${pm}${wm}
+    <span class="tag tw" style="right:150px;top:256px;left:auto">${T('右键 window 标签：把 logs 并到 Claude 旁边','Right-click a window tab: pull logs next to Claude')}</span>
+    <span class="tag tp" style="left:300px;top:384px;right:auto;bottom:auto">${T('右键 pane（iTerm2 里 Cmd+右键也行）：拆成独立 window','Right-click a pane (Cmd+right-click in iTerm2): break it out')}</span></div>`;
+  html=`<div class="stage" style="width:1200px;height:700px">
+    <div class="head"><h1>${T('pane ⇄ window 随时互转','Panes ⇄ windows, any time')}</h1><p>${T('需要边看边批准时并进来，看完拆回去；键盘上是 ','Pull a view in while you approve, break it out when done; on the keyboard: ')}${K('prefix @')} ${K('prefix #')} ${T('并入，','join, ')}${K('prefix !')} ${T('拆出','break')}</p></div>
+    ${win('tmux',bar(sessions,windows,1,null)+body)}</div>`;
+}
+
+if(scene==='agents'){
+  const mini=(sessions,lines,msg)=>`<div class="mwin">${bar(sessions,[],1,msg).replace(/ 2026-10-23 16:20 /,'')}<div class="mbody">${lines}</div></div>`;
+  const step=(n,t,d,m)=>`<div class="step"><div class="sn">${n}</div><div><h3>${t}</h3><p>${d}</p>${m}</div></div>`;
+  const S=(a,b,c,d)=>[['main','',a],['api-server',b,false],['docs',c,false],['frontend',d,false]];
+  const shellLine=`<span class="c-c">~/notes</span> <span class="c-g">❯</span> <span class="cursor"> </span>`;
+  html=`<div class="stage" style="width:1200px;height:590px">
+    <div class="head"><h1>${T('和多个 Claude 一起干活','Working alongside several Claudes')}</h1><p>${T('每个 agent 一个 session，你只在需要你的时候出现','One session per agent; you only show up when one needs you')}</p></div>
+    <div class="steps">
+    ${step(1,T('一个 agent 一个 session','One agent, one session'),T('在项目目录 ','In each project run ')+'<code>tn api-server</code>'+T(' 开 session 跑 claude。状态栏左边就是你的 agent 队列。',' and start claude. The left of the status bar becomes your agent queue.'),
+      mini(S(true,'run','run','run'),shellLine))}
+    ${step(2,T('后台跑，不用盯','Let them run'),T('蓝色转圈 = 还在干活。你在 main 里做自己的事，不用来回切着看。','Blue spinner = still working. Do your own thing in main instead of checking each one.'),
+      mini(S(true,'run','run','done'),shellLine))}
+    ${step(3,T('需要你时冒红','Red when it needs you'),T('红底 ! 加一行提示。','A red ! plus a banner. ')+K('prefix G')+T(' 直接跳到最早等你的；想先看它在问什么就 ',' jumps to the one waiting longest; to peek first, use ')+K('prefix g')+T('，或者直接点 session 名。','; or just click the session name.'),
+      mini(S(true,'run','ask','done'),shellLine))}
+    ${step(4,T('批准，再回来','Approve, come back'),T('批准后它继续跑，标记变回蓝色。跑完的显示黄色 ✓，你有空再看，看过自动消失。','After approval it goes blue again. Finished ones show a yellow ✓ until you look.'),
+      mini([['main','',false],['api-server','run',false],['docs','run',true],['frontend','done',false]],`<span class="c-b">❯ 1. Yes</span>   <span class="c-g">●</span> <span class="b">Bash</span>(npm run build:docs)`))}
+    </div></div>`;
+}
+
 // lang=en：在最终 HTML 上按 中文→英文 替换（长串先替换，避免被短串截断）
 const EN={
   '把 README 的安装步骤改成中英双语，然后重新生成文档站':'Make the README install steps bilingual, then rebuild the docs site',

@@ -52,6 +52,14 @@ Prefix is `C-a`. Movement uses vim's `h j k l`. Splits open in the current direc
 
 Inside a session, combine this with part 1. Keep Claude in window 1 and the server or logs in window 2. When you need to watch logs while approving, join that window next to Claude with `prefix @`, and break it back out with `prefix !` when you're done. Two Claudes in panes of the same window keep separate states.
 
+### Browse, review, tweak
+
+![Browse, review, tweak](docs/img/en/files.png)
+
+- **`prefix v`: what did Claude change?** A popup lists the changed and untracked files of the current pane's git repo, with a [delta](https://github.com/dandavison/delta) diff on the right. Enter opens the file in `$EDITOR`, `ctrl-r` refreshes, Esc closes. It is occasional, so it is a popup, like `prefix g` and `prefix u`.
+- **`prefix e`: file tree sidebar.** Toggles [yazi](https://github.com/sxyazi/yazi) in a pane on the left (about 30% wide), opened in the current pane's directory. You browse next to Claude, so it is a pane, and `prefix !` can break it out into its own window. Text files open in `$EDITOR` in a popup, because the sidebar is too narrow to edit in.
+- Claude Code notices when a file changed after it read it, so you won't overwrite each other. Still, avoid editing a file while Claude is in the middle of editing it.
+
 ### How the badges work
 
 Claude Code hooks write each pane's state into tmux options. The status bar renders them:
@@ -104,7 +112,7 @@ Each kind of number goes where it belongs:
 - **tmux**: vi copy mode (copies to the macOS clipboard). Sessions are restored with resurrect + continuum. zsh auto-attaches to a `main` session. Requires tmux ≥ 3.8.
 - **zsh**: no framework. Uses eza / bat / fzf / zoxide / starship / autosuggestions / syntax-highlighting, plus small fzf helpers `f`, `fv`, `rgi`, `cproj`.
 - **vim**: vim-plug with NERDTree, fugitive, lightline, and more.
-- **iTerm2**: "Moshi Dark" dynamic profile (JetBrains Mono + Noto Sans Mono CJK) and the Minimal theme.
+- **iTerm2**: "Moshi Dark" dynamic profile (JetBrains Mono + Noto Sans Mono CJK) and the Minimal theme. Symbols Nerd Font supplies yazi's file icons through macOS font fallback, so you don't have to change fonts.
 
 ## Install
 

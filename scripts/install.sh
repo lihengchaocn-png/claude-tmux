@@ -17,6 +17,10 @@ install_tmux() {
   mkdir -p ~/.config/tmux
   backup ~/.tmux.conf;                     cp "$FILES/tmux.conf" ~/.tmux.conf
   backup ~/.config/tmux/mouse-menus.conf;  cp "$FILES/mouse-menus.conf" ~/.config/tmux/mouse-menus.conf
+  # prefix v（改动 + diff）、prefix e（yazi 侧栏）、编辑器弹窗用到的脚本，以及 yazi 配置
+  mkdir -p ~/.config/tmux/bin ~/.config/yazi
+  cp "$FILES"/tmux-bin/* ~/.config/tmux/bin/ && chmod +x ~/.config/tmux/bin/*
+  backup ~/.config/yazi/yazi.toml;         cp "$FILES/yazi/yazi.toml" ~/.config/yazi/yazi.toml
 
   if [[ ! -d ~/.tmux/plugins/tpm ]]; then
     git clone --depth 1 https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
@@ -33,7 +37,7 @@ install_shell() {
   backup ~/.zprofile; cp "$FILES/shell/zprofile" ~/.zprofile
   backup ~/.profile;  cp "$FILES/shell/profile"  ~/.profile
   if command -v brew >/dev/null 2>&1; then
-    brew install eza bat fd ripgrep fzf zoxide starship zsh-autosuggestions zsh-syntax-highlighting tmux
+    brew install eza bat fd ripgrep fzf zoxide starship zsh-autosuggestions zsh-syntax-highlighting tmux yazi git-delta
   else
     echo "  !! 未找到 brew，请先安装 Homebrew 后重跑: $0 shell"
   fi
@@ -67,6 +71,8 @@ install_iterm() {
   if command -v brew >/dev/null 2>&1; then
     brew list --cask font-jetbrains-mono >/dev/null 2>&1 || brew install --cask font-jetbrains-mono || true
     brew list --cask font-noto-sans-mono-cjk-sc >/dev/null 2>&1 || brew install --cask font-noto-sans-mono-cjk-sc || true
+    # yazi 的文件图标：只含图标的 Nerd Font，macOS 会自动回退过去，不用改终端字体
+    brew list --cask font-symbols-only-nerd-font >/dev/null 2>&1 || brew install --cask font-symbols-only-nerd-font || true
   fi
 
   # Dynamic Profile: Moshi Dark（完整配色/字体/边距）

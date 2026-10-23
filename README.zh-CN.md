@@ -52,6 +52,14 @@
 
 在 session 内部，可以和第一部分配合着用。window 1 放 Claude，window 2 放 server 或日志。需要一边看日志一边批准时，用 `prefix @` 把日志 window 并到 Claude 旁边，看完再用 `prefix !` 拆回去。同一个 window 里两个 pane 各跑一个 Claude，状态也会分开记录。
 
+### 看文件、看改动、顺手改
+
+![看文件、看改动、顺手改](docs/img/zh/files.png)
+
+- **`prefix v`：Claude 刚才改了什么。** 弹窗列出当前 pane 所在 git 仓库里有改动的文件和未跟踪的文件，右侧用 [delta](https://github.com/dandavison/delta) 显示 diff。回车用 `$EDITOR` 打开，`ctrl-r` 刷新，Esc 关闭。偶尔才看，所以和 `prefix g`、`prefix u` 一样做成弹窗。
+- **`prefix e`：文件树侧栏。** 在当前 pane 左侧开关一个约 30% 宽的 [yazi](https://github.com/sxyazi/yazi)，目录跟随当前 pane。它要和 Claude 并排看，所以做成 pane，也能用 `prefix !` 拆成独立 window。侧栏太窄不适合编辑，文本文件会在弹窗里用 `$EDITOR` 打开。
+- Claude Code 能发现文件在它读过之后被改过，不会互相覆盖；但最好不要在它正在改某个文件时去改同一个文件。
+
 ### 徽标是怎么工作的
 
 Claude Code 的 hook 把每个 pane 的状态写进 tmux 选项，状态栏据此显示：
@@ -99,7 +107,7 @@ Claude Code 的 hook 把每个 pane 的状态写进 tmux 选项，状态栏据�
 - **tmux**：vi 复制模式（复制到 macOS 剪贴板）；用 resurrect + continuum 自动恢复会话；zsh 启动时自动进入 `main` 会话。需要 tmux ≥ 3.8。
 - **zsh**：不用框架；装了 eza / bat / fzf / zoxide / starship / autosuggestions / syntax-highlighting，另有 `f` `fv` `rgi` `cproj` 几个 fzf 小工具。
 - **vim**：vim-plug + NERDTree、fugitive、lightline 等。
-- **iTerm2**：Moshi Dark 动态 profile（JetBrains Mono + Noto Sans Mono CJK），Minimal 主题。
+- **iTerm2**：Moshi Dark 动态 profile（JetBrains Mono + Noto Sans Mono CJK），Minimal 主题。yazi 的文件图标来自 Symbols Nerd Font，macOS 会自动回退到这个字体，不用换终端字体。
 
 ## 安装
 

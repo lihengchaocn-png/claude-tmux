@@ -1,0 +1,10 @@
+# yazi：文本文件用 tmux 弹窗里的 $EDITOR 打开（侧栏太窄，不在侧栏里编辑）；其余沿用 yazi 默认
+[mgr]
+show_hidden = false
+sort_dir_first = true
+ratio = [0, 1, 1]   # 侧栏里不要父目录列
+
+[opener]
+edit = [
+  { run = "~/.config/tmux/bin/edit-popup %s", desc = "edit (tmux popup)", for = "unix" },
+]

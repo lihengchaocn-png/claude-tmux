@@ -1,0 +1,55 @@
+#!/bin/bash
+# prefix v：当前目录所在 git 仓库里有改动的文件（含未跟踪），右侧 delta 显示 diff；
+# enter 用 $EDITOR 在弹窗里打开，ctrl-r 刷新，esc 关闭。回答“Claude 刚才改了什么”
+PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+TAB=$'\t'
+SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+
+if [ "$(tmux show -gqv @cc_lang 2>/dev/null)" = en ]; then
+  M_NOGIT='Not a git repository:' M_CLEAN='No changes in' M_HEAD='enter edit · ctrl-r refresh · esc close' M_KEY='press any key'
+else
+  M_NOGIT='不是 git 仓库：' M_CLEAN='没有改动：' M_HEAD='enter 编辑 · ctrl-r 刷新 · esc 关闭' M_KEY='按任意键关闭'
+fi
+
+# 输出 "状态<TAB>路径"，状态着色：新增/未跟踪 绿，删除 红，其他 黄
+list() {
+  # -z：路径不加引号；改名 / 复制记录后面多跟一条原路径，跳过
+  git status --porcelain=v1 -z --untracked-files=all | tr '\0' '\n' | awk -v OFS='\t' '
+  skip { skip = 0; next }
+  {
+    st = substr($0, 1, 2); p = substr($0, 4); if (st ~ /[RC]/) skip = 1
+    c = st ~ /\?|A/ ? "32" : st ~ /D/ ? "31" : "33"
+    print "\033[" c "m" st "\033[0m", p
+  }'
+}
+
+preview() {  # $1 状态 $2 路径
+  local w=${FZF_PREVIEW_COLUMNS:-100}
+  if [ "$1" = '??' ]; then
+    git diff --no-index -- /dev/null "$2"
+  elif git rev-parse -q --verify HEAD >/dev/null; then
+    git diff HEAD -- "$2"
+  else
+    git diff --cached -- "$2"; git diff -- "$2"
+  fi | delta --width="$w" --paging=never 2>/dev/null
+}
+
+case "$1" in
+  __list) list; exit 0 ;;
+  __preview) shift; preview "$@"; exit 0 ;;
+esac
+
+cd "${1:-$PWD}" 2>/dev/null || exit 0
+if ! root=$(git rev-parse --show-toplevel 2>/dev/null); then
+  printf '%s %s\n\n%s' "$M_NOGIT" "$PWD" "$M_KEY"; read -rsn1; exit 0
+fi
+cd "$root"
+if [ -z "$(git status --porcelain --untracked-files=all)" ]; then
+  printf '%s %s\n\n%s' "$M_CLEAN" "$root" "$M_KEY"; read -rsn1; exit 0
+fi
+list | fzf --ansi --delimiter="$TAB" --reverse --no-sort \
+  --prompt "$(basename "$root")> " --header "$M_HEAD" \
+  --preview "'$SELF' __preview {1} {2}" --preview-window 'right,65%' \
+  --bind "enter:execute('$SELF.editor' {2})+reload('$SELF' __list)" \
+  --bind "ctrl-r:reload('$SELF' __list)"
+exit 0

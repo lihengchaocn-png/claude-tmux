@@ -1,0 +1,3 @@
+#!/bin/bash
+# changes 列表里按 enter：已经在弹窗里，直接用 $EDITOR 打开
+exec "${EDITOR:-vim}" "$@"

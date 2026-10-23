@@ -1,0 +1,7 @@
+#!/bin/bash
+# 在 tmux 弹窗里用 $EDITOR 打开文件（yazi 的 edit opener、changes 列表都用它）；不在 tmux 里就直接打开
+[ $# -gt 0 ] || exit 0
+if [ -n "$TMUX" ]; then
+  exec tmux display-popup -E -w 90% -h 90% -d "$(dirname "$1")" -T " $(basename "$1") " -- "${EDITOR:-vim}" "$@"
+fi
+exec "${EDITOR:-vim}" "$@"

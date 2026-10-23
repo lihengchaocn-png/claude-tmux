@@ -83,6 +83,8 @@ code{font-family:'JetBrains Mono',monospace;font-size:.9em;color:#fff;background
 .tl{background:#4ade80;right:0;top:30px}.tc{background:#f472b6;left:0;bottom:30px}.tu{background:#facc15;left:-4px;bottom:-34px}
 .ub{display:flex;align-items:center;gap:12px;margin:6px 0 0 8px}.un{width:64px}.ut{width:200px;height:12px;background:#3a3a3a;border-radius:2px;overflow:hidden;display:inline-block}.ut span{display:block;height:100%}.up{width:42px;text-align:right;font-weight:700}.ua{color:#bcbcbc;white-space:nowrap}
 .ut2{border-collapse:collapse;margin:8px 0 0 8px;font-size:13.5px}.ut2 th,.ut2 td{border:1px solid #4a4a4a;padding:2px 14px;text-align:right}.ut2 th{color:#fff}.ut2 td:first-child,.ut2 th:first-child{text-align:left}
+.ze{--zc:#a78bfa;outline-offset:-4px}.te{background:#a78bfa;left:10px;bottom:12px}
+.ysel{background:#61afef;color:#111}.dm{background:#3f1d22;color:#ffb3b8}.dp{background:#1d3b2a;color:#b5f2c8}
 </style></head>
 <body><div id="root"></div>
 <script>
@@ -214,7 +216,7 @@ if(scene==='keys'){
   const li=(a,b)=>`<li><span class="act">${a}</span><span class="how">${b}</span></li>`;
   const col=(cls,title,sub,mouse,keys)=>`<div class="kc ${cls}"><div class="kh"><span class="kt">${title}</span><span class="ks">${sub}</span></div>
     <div class="kg">${T('鼠标','Mouse')}</div><ul>${mouse.join('')}</ul><div class="kg">${T('键盘','Keyboard')}</div><ul>${keys.join('')}</ul></div>`;
-  html=`<div class="stage" style="width:1200px;height:720px">
+  html=`<div class="stage" style="width:1200px;height:800px">
     <div class="head"><h1>${T('键鼠都顺手','Mouse and keyboard, both first-class')}</h1><p>${T('前缀 ','Prefix ')}${K('C-a')}${T('，下面的键都在前缀之后按；方向键用 vim 的 ',', all keys below come after it; vim-style ')}${K('h j k l')}</p></div>
     <div class="kcs">
     ${col('cs','Session',T('状态栏左侧','left of the status bar'),[
@@ -251,6 +253,8 @@ if(scene==='keys'){
       li(K('z'),T('全屏 / 还原','zoom / unzoom')),
       li(K('!'),T('拆成独立 window','break out to a window')),
       li(K('[')+' v y',T('复制模式，复制到剪贴板','copy mode → clipboard')),
+      li(K('e'),T('文件树侧栏（yazi）','file tree sidebar (yazi)')),
+      li(K('v'),T('看改动 + diff，enter 编辑','changed files + diff, enter to edit')),
     ])}
     </div></div>`;
 }
@@ -355,6 +359,34 @@ if(scene==='hero2'){
     <div class="head"><h1>claude-tmux</h1><p>${T('优雅的 Claude TUI，基于 tmux：Session · Window · Pane 三级设计 + 多 agent 协作','An elegant TUI for Claude, based on tmux: a three-level Session · Window · Pane design, built for working with agents')}</p></div>
     ${win('tmux',st+body)}
     <div class="cap">${caps[ph]}</div></div>`;
+}
+
+if(scene==='files'){
+  const sessions=[['main','',false],['api-server','done',true],['docs','run',false]];
+  const windows=[['1:claude*','done',true],['2:server','',false]];
+  const tree=[['','src',1],['','routes',0],['','lib',0],['','tests',0],['','package.json',0],['','README.md',0]];
+  const yz=`<div class="pane zone ze" style="flex:0 0 30%;padding:6px 8px;white-space:normal"><div class="c-c" style="white-space:pre">~/code/api-server</div><div style="display:flex;gap:8px;margin-top:4px">
+    <div style="flex:1">${tree.map(t=>`<div class="${t[2]?'ysel':''}" style="white-space:pre"> ${t[0]==='' ? (t[1].includes('.')?'·':'▸') : ''} ${t[1]}</div>`).join('')}</div>
+    <div style="flex:1;border-left:1px solid #3a3a3a;padding-left:8px">${['routes','lib','index.ts','server.ts'].map(x=>`<div class="c-dim" style="white-space:pre">${x}</div>`).join('')}</div></div>
+    <span class="tag te">${T('prefix e · 文件树侧栏','prefix e · file tree sidebar')}</span></div>`;
+  const files=[[' M','src/routes/orders.ts','33',1],['A ','src/lib/paginate.ts','32',0],['??','tests/orders.test.ts','32',0],[' M','README.md','33',0]];
+  const flist=files.map(x=>`<div class="${x[3]?'sel':''}" style="white-space:pre"><span style="color:${x[2]==='32'?'#4fc28c':'#e5b567'}">${x[0]}</span>  ${x[1]}</div>`).join('');
+  const dl=(t,c)=>`<div class="${c}" style="white-space:pre">${t}</div>`;
+  const diff=[dl('<span class="b c-b">src/routes/orders.ts</span>',''),dl('<span class="c-dim">──────────────────────────────</span>',''),
+    dl(' router.get(\'/orders\', async (req, res) =&gt; {',''),
+    dl('-  const orders = await db.orders.findAll();','dm'),
+    dl('+  const { page = 1, size = 20 } = req.query;','dp'),
+    dl('+  const orders = await paginate(db.orders, page);','dp'),
+    dl('   res.json(orders);',''),dl(' });','')].join('');
+  const pop=`<div class="popup zu" style="left:31%;right:24px;top:24px;bottom:48px;padding:8px 12px;white-space:normal;display:flex;flex-direction:column"><span class="pt"> changes </span>
+    <div style="white-space:pre"><span class="c-b">api-server&gt;</span> <span class="cursor"> </span></div>
+    <div class="c-dim" style="white-space:pre">  ${T('enter 编辑 · ctrl-r 刷新 · esc 关闭','enter edit · ctrl-r refresh · esc close')}</div>
+    <div style="display:flex;gap:14px;margin-top:6px;flex:1"><div style="flex:0 0 33%">${flist}</div><div style="flex:1;border-left:1px solid #4a4a4a;padding-left:12px">${diff}</div></div>
+    <span class="tag tu">${T('prefix v · Claude 改了什么（delta diff，enter 编辑）','prefix v · what Claude changed (delta diff, enter to edit)')}</span></div>`;
+  const body=`<div class="panes" style="height:430px">${yz}<div class="vsep"></div><div class="pane" style="opacity:.35">${claudeRun(3)}</div>${pop}</div>`;
+  html=`<div class="stage" style="width:1200px;height:700px">
+    <div class="head"><h1>${T('看文件、看改动、顺手改','Browse, review, tweak')}</h1><p>${T('文件树是并排看的，放侧栏 pane；看改动是偶尔的，放弹窗','The file tree sits beside Claude as a pane; reviewing changes is occasional, so it is a popup')}</p></div>
+    ${win('tmux',bar(sessions,windows,1,null)+body)}</div>`;
 }
 
 // lang=en：在最终 HTML 上按 中文→英文 替换（长串先替换，避免被短串截断）

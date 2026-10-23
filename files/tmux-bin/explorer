@@ -1,0 +1,17 @@
+#!/bin/bash
+# prefix e：在当前 pane 左侧开关 yazi 文件树侧栏（约 30% 宽，目录跟随当前 pane）
+# 侧栏 pane 用 pane 选项 @explorer=1 标记；当前 window 里已有就关掉，没有就新开
+# 用法：explorer <pane_id> <pane_current_path>
+PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+pane=$1 dir=$2
+open=$(tmux list-panes -t "$pane" -F '#{pane_id} #{@explorer}' | awk '$2 == 1 { print $1; exit }')
+if [ -n "$open" ]; then
+  tmux kill-pane -t "$open"
+  exit 0
+fi
+if ! command -v yazi >/dev/null 2>&1; then
+  tmux display-message "yazi not found: brew install yazi"
+  exit 0
+fi
+new=$(tmux split-window -h -b -l 30% -t "$pane" -c "$dir" -P -F '#{pane_id}' yazi)
+tmux set -pq -t "$new" @explorer 1

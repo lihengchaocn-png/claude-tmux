@@ -123,6 +123,8 @@ cp ~/.vimrc $S/vim/vimrc
 cp ~/.tmux.conf $S/tmux.conf
 cp ~/.config/tmux/mouse-menus.conf $S/mouse-menus.conf```
 
+本目录是 git 仓库，远程为 GitHub 公开仓库 `lihengchaocn-png/tmux-claude-iterm2-setup`（提交身份已在仓库本地设为 GitHub noreply 邮箱，全局 git 邮箱是公司邮箱，不要用）。同步完 `git commit` 并 `git push`；提交前确认没有带入个人/公司信息（绝对路径用 `$HOME`）。
+
 别名/函数/插件有增删时，同步更新上面 zsh 要点里的表格；新依赖的 brew 包加进 `install.sh` 的 `install_shell`。
 
 iTerm2 profile 在 GUI 改过后，从 `~/Library/Preferences/com.googlecode.iterm2.plist` 的 `New Bookmarks` 里取 GUID 为 `moshi-dark-0001` 的条目重新导出成 `files/iterm2/moshi-dark.json`（去掉 `(Dark)`/`(Light)` 颜色变体、`Dynamic Profile Filename`、`Is Dynamic Profile`、`Rewritable`、`Columns`/`Rows`、`Working Directory`，外层包 `{"Profiles": [...]}`）。全局项有变化时同步更新 `install.sh` 里的 `defaults write` 列表；可与 plist 备份 diff 找出改了哪些键。

@@ -1,5 +1,7 @@
 # tmux-claude-iterm2-setup
 
+**中文** | [English](README.en.md)
+
 macOS 终端环境配置：zsh + vim + tmux + iTerm2，外加 **Claude Code ↔ tmux 状态提醒**。
 
 ![一眼看出哪个 Claude 在等你](docs/img/hero.gif)

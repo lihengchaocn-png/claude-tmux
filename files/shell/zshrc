@@ -1,0 +1,98 @@
+
+. "$HOME/.local/bin/env"
+
+
+
+
+# Homebrew shell integrations
+[[ -r /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && \
+  source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+command -v fzf >/dev/null 2>&1 && source <(fzf --zsh)
+command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
+command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)"
+
+# Modern CLI aliases; use `command ls` or `command cat` for the originals.
+command -v eza >/dev/null 2>&1 && alias ls='eza'
+command -v eza >/dev/null 2>&1 && alias ll='eza -lah --git'
+command -v bat >/dev/null 2>&1 && alias cat='bat'
+
+# Keep syntax highlighting last so it can wrap previously defined widgets.
+[[ -r /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] && \
+  source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# >>> shell-dev-functions >>>
+# Interactive file picker: preview with bat, open with $EDITOR (defaults to vim).
+f() {
+  local file
+  file=$(fd --type f | \
+    fzf --preview 'bat --color=always --style=numbers --line-range=:500 {}') || return
+  [[ -n "$file" ]] && "${EDITOR:-vim}" "$file"
+}
+
+# Interactive file picker: preview with bat, open in VS Code.
+fv() {
+  command -v code >/dev/null 2>&1 || {
+    print -u2 'fv: VS Code command `code` was not found'
+    return 127
+  }
+
+  local file
+  file=$(fd --type f | \
+    fzf --preview 'bat --color=always --style=numbers --line-range=:500 {}') || return
+  [[ -n "$file" ]] && code "$file"
+}
+
+# Search file contents interactively, preview the selected line, then open in VS Code.
+# Usage: rgi keyword   (without an argument, you will be prompted)
+rgi() {
+  command -v code >/dev/null 2>&1 || {
+    print -u2 'rgi: VS Code command `code` was not found'
+    return 127
+  }
+
+  local query result file line
+  query="$*"
+  if [[ -z "$query" ]]; then
+    read "query?rgi search: "
+  fi
+  [[ -z "$query" ]] && return 1
+
+  result=$(rg --line-number --column --no-heading --color=always --smart-case -- "$query" | \
+    fzf --ansi --delimiter=: \
+      --preview 'bat --color=always --style=numbers --highlight-line {2} {1}' \
+      --preview-window='right,60%,+{2}-5') || return
+
+  file="${result%%:*}"
+  line="${result#*:}"
+  line="${line%%:*}"
+  [[ -n "$file" && -n "$line" ]] && code --goto "$file:$line"
+}
+
+# Pick a directory remembered by zoxide and open it as a VS Code project.
+cproj() {
+  command -v code >/dev/null 2>&1 || {
+    print -u2 'cproj: VS Code command `code` was not found'
+    return 127
+  }
+
+  local dir
+  dir=$(zoxide query --list | \
+    fzf --preview 'eza --tree --level=2 --color=always {} 2>/dev/null | head -200') || return
+  [[ -n "$dir" ]] && code "$dir"
+}
+# <<< shell-dev-functions <<<
+
+
+# >>> tmux >>>
+alias ta='tmux attach -t'
+alias tn='tmux new -A -s'
+alias tls='tmux ls'
+alias tl='tmux ls'
+# 本机终端和 ssh 登录都自动进入 main 会话。
+# 跳过：已在 tmux 内、非交互 shell（scp/rsync/脚本）、VS Code/code-server 内置终端、NO_TMUX=1。
+if [[ -o interactive && -t 0 && -z "$TMUX" && -z "$NO_TMUX" \
+      && "$TERM_PROGRAM" != vscode ]] && command -v tmux >/dev/null 2>&1; then
+  tmux new -A -s main
+fi
+# <<< tmux <<<

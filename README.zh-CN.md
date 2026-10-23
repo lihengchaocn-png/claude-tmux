@@ -112,7 +112,7 @@ Claude Code 的 hook 把每个 pane 的状态写进 tmux 选项，状态栏据�
 |---|---|---|
 | 5 小时 / 7 天额度用了多少 | tmux 状态栏右侧，挨着时钟。低于 50% 绿色，低于 80% 黄色，80% 及以上红色并显示重置时间 | Claude Code 传给 statusLine 的 `rate_limits`，由 `cc-statusline.sh` 写进 tmux。Claude 还没回复过时，先用 `~/.claude.json` 里的缓存 |
 | 上下文占用、模型 | Claude 自己的 statusLine | statusLine 输入 |
-| 最近 7 天每日 token 和费用 | `prefix u` 弹窗（用 less 翻页，`q` 关闭） | [ccusage](https://github.com/ryoppippi/ccusage)，通过 `bunx` / `npx` 运行 |
+| 最近 7 天每日 token 和费用 | `prefix u` 弹窗，每天一行（按任意键或 Esc 关闭） | [ccusage](https://github.com/ryoppippi/ccusage)，通过 `bunx` / `npx` 运行 |
 
 - 额度是整个账号共享的，不属于任何一个 session，所以放在时钟旁边。每日用量只是偶尔看一眼，所以放进弹窗，不占状态栏。
 - ccusage 的费用是按 API 标价估算的。订阅用户的实际账单不是这个数，只能用来比较哪天用得多。

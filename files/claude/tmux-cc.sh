@@ -26,7 +26,7 @@ load_lang() {
     M_LIM='Claude limits (shared by the whole account)' M_5H='5 hours' M_7D='7 days ' M_RESET='resets'
     M_DAILY='Daily usage, last 7 days (ccusage; cost is an estimate at API list price, not your bill)'
     M_NOCC='bunx / npx not found, cannot run ccusage' M_NOLIM='No limit data yet (shown after Claude'"'"'s first reply)'
-    M_QUIT='q to close'
+    M_QUIT_KEY='press any key (Esc too) to close' M_QUIT_LESS='q to close'
   else
     L_ASK='! 等确认' L_DONE='✓ 跑完  ' L_RUN='◐ 在跑  '
     M_NONE='没有 Claude 会话' M_IDLE='没有等你处理的 Claude'
@@ -34,7 +34,7 @@ load_lang() {
     M_LIM='Claude 额度（整个账号共享）' M_5H='5 小时' M_7D='7 天  ' M_RESET='重置'
     M_DAILY='最近 7 天每日用量（ccusage；费用按 API 标价估算，不是实际账单）'
     M_NOCC='没有 bunx / npx，无法运行 ccusage' M_NOLIM='还没有额度数据（Claude 回复过一次后才有）'
-    M_QUIT='按 q 关闭'
+    M_QUIT_KEY='按任意键关闭（Esc 也可以）' M_QUIT_LESS='按 q 关闭'
   fi
 }
 
@@ -123,15 +123,28 @@ usage_report() {
     printf '  %s  \033[%sm%s %3s%%\033[0m   %s %s\n' "$name" "$c" "$bar" "$p" "$at" "$M_RESET"
   done
   [ $shown = 0 ] && printf '  %s\n' "$M_NOLIM"
-  printf '\n\033[1m%s\033[0m\n' "$M_DAILY"
+  printf '\n\033[1m%s\033[0m\n\n' "$M_DAILY"
+  # ccusage 自带的表格按 agent / 模型拆行，7 天就有 40 多行，弹窗放不下；取 JSON 自己排成每天一行
+  local json=
   if command -v bunx >/dev/null 2>&1; then
-    FORCE_COLOR=1 bunx "$CCUSAGE" daily --last 7 --offline 2>/dev/null
+    json=$(bunx "$CCUSAGE" daily --last 7 --offline --json 2>/dev/null)
   elif command -v npx >/dev/null 2>&1; then
-    FORCE_COLOR=1 npx -y "$CCUSAGE" daily --last 7 --offline 2>/dev/null
-  else
-    printf '  %s\n' "$M_NOCC"
+    json=$(npx -y "$CCUSAGE" daily --last 7 --offline --json 2>/dev/null)
   fi
-  printf '\n\033[2m%s\033[0m\n' "$M_QUIT"
+  if [ -z "$json" ]; then
+    printf '  %s\n' "$M_NOCC"
+    return 0
+  fi
+  printf '%s\n' "$json" | jq -r '
+    def hum: if . >= 1e9 then "\(. / 1e8 | floor / 10)B" elif . >= 1e6 then "\(. / 1e5 | floor / 10)M"
+             elif . >= 1e3 then "\(. / 1e2 | floor / 10)K" else tostring end;
+    def usd: (. * 100 | round) as $c | "$\($c / 100 | floor).\($c % 100 | if . < 10 then "0\(.)" else tostring end)";
+    ["date", "tokens", "output", "cost", "models"],
+    (.daily[] | [.period, (.totalTokens | hum), (.outputTokens | hum), (.totalCost | usd),
+                 (.modelsUsed | map(sub("^claude-"; "")) | join(","))]),
+    (.totals | ["total", (.totalTokens | hum), (.outputTokens | hum), (.totalCost | usd), ""])
+    | join("\t")' | column -t -s "$TAB" |
+    awk 'NR == 1 { printf "  \033[2m%s\033[0m\n", $0; next } /^total/ { printf "  \033[1m%s\033[0m\n", $0; next } { print "  " $0 }'
 }
 
 goto_pane() {  # $1 pane  $2 client（可空）
@@ -147,7 +160,15 @@ case "$1" in
   gc) gc; exit 0 ;;
   list) list_agents; exit 0 ;;
   usage-cache) usage_cache; exit 0 ;;
-  usage) usage_report | less -RXS; exit 0 ;;
+  usage)
+    # 放得下就直接显示、按任意键（含 Esc）关闭；放不下才用 less 翻页（less 里不能绑 Esc：方向键也以 Esc 开头）
+    out=$(usage_report); load_lang
+    if [ "$(printf '%s\n' "$out" | wc -l)" -lt "$(( $(tput lines) - 2 ))" ]; then
+      printf '%s\n\n\033[2m%s\033[0m' "$out" "$M_QUIT_KEY"; read -rsn1
+    else
+      printf '%s\n\n\033[2m%s\033[0m\n' "$out" "$M_QUIT_LESS" | less -RXS
+    fi
+    exit 0 ;;
   jump)
     list=$(list_agents)
     if [ -z "$list" ]; then tmux display-message "$M_NONE"; exit 0; fi

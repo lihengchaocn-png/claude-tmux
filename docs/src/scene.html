@@ -305,15 +305,17 @@ if(scene==='usage'){
   const lim=`<span class="zone zl"><span style="color:#808080"> 5h </span><span style="color:#ff5f5f;font-weight:700">86% ↻19:10</span><span style="color:#808080"> 7d </span><span style="color:#87d787">41%</span> <span class="tag tl">${T('账号额度 · 全局，放时钟旁','Account limits · global, next to the clock')}</span></span>`;
   const sl=`<div class="zone zc" style="position:absolute;left:12px;bottom:10px;padding:0 4px">Opus 5.5 · ctx <span class="c-g">35%</span><span class="tag tc">${T('会话信息 · Claude 自己的 statusLine','Session info · Claude’s own statusLine')}</span></div>`;
   const pb=(n,p,c,at)=>`<div class="ub"><span class="un">${n}</span><span class="ut"><span style="width:${p}%;background:${c}"></span></span><span class="up" style="color:${c}">${p}%</span><span class="ua">${at}</span></div>`;
-  const rows=[['10-19','412,880','$38.20'],['10-20','386,404','$41.00'],['10-21','366,998','$46.37'],['10-22','649,276','$87.49'],['10-23','382,483','$34.77']];
-  const tbl=`<table class="ut2"><tr><th>${T('日期','Date')}</th><th>Output</th><th>Cost</th></tr>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="c-y">${r[2]}</td></tr>`).join('')}</table>`;
+  const rows=[['10-19','22.4M','71.3K','$12.80'],['10-20','64.0M','210.5K','$27.15'],['10-21','51.7M','188.2K','$23.60'],['10-22','93.2M','402.9K','$51.34'],['10-23','70.6M','265.0K','$31.08']];
+  const tbl=`<div style="white-space:pre;margin:8px 0 0 8px"><span class="c-dim">date    tokens   output   cost     models</span>
+${rows.map(r=>`${r[0]}   ${r[1].padEnd(8)} ${r[2].padEnd(8)} <span class="c-y">${r[3].padEnd(8)}</span> opus-5-5`).join('\n')}
+<span class="b">total   301.9M   1.1M     $145.97</span></div>`;
   const pop=`<div class="popup zu" style="right:40px;top:44px;width:560px;padding:12px 16px;white-space:normal"><span class="pt"> Claude usage </span>
 <div class="b">${T('Claude 额度（整个账号共享）','Claude limits (shared by the whole account)')}</div>
 ${pb(T('5 小时','5 hours'),86,'#ff5f5f','19:10 '+T('重置','resets'))}
 ${pb(T('7 天','7 days'),41,'#87d787','10/30 08:00 '+T('重置','resets'))}
 <div class="b" style="margin-top:12px">${T('最近 7 天每日用量（ccusage）','Daily usage, last 7 days (ccusage)')}</div>
 ${tbl}
-<div class="c-dim" style="margin-top:6px">${T('费用按 API 标价估算，不是实际账单 · 按 q 关闭','Cost is an estimate at API list price · q to close')}</div><span class="tag tu">${T('每日用量 · prefix u 弹窗','Daily usage · prefix u popup')}</span></div>`;
+<div class="c-dim" style="margin-top:6px">${T('费用按 API 标价估算，不是实际账单 · 按任意键或 Esc 关闭','Cost is an estimate at API list price · any key or Esc closes')}</div><span class="tag tu">${T('每日用量 · prefix u 弹窗','Daily usage · prefix u popup')}</span></div>`;
   const body=`<div class="panes" style="height:470px"><div class="pane">${claudeRun(2)}</div>${sl}${pop}</div>`;
   html=`<div class="stage" style="width:1200px;height:740px">
     <div class="head"><h1>${T('额度和用量，各放各的位置','Limits and usage, each in its place')}</h1><p>${T('账号级的放全局，会话级的放会话里，偶尔看的放弹窗','Account-wide goes global, per-session stays in the session, occasional goes in a popup')}</p></div>

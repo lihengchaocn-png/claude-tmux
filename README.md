@@ -117,7 +117,7 @@ Each kind of number goes where it belongs:
 |---|---|---|
 | 5-hour / 7-day limit used | tmux status bar, right side, next to the clock. Green < 50%, yellow < 80%, red ≥ 80% (with reset time) | `rate_limits` in Claude Code's statusLine input, written into tmux by `cc-statusline.sh`. Until a Claude replies, it falls back to the cache in `~/.claude.json` |
 | Context used, model | Claude's own statusLine | statusLine input |
-| Daily tokens and cost, last 7 days | `prefix u` popup (scroll with less, `q` to close) | [ccusage](https://github.com/ryoppippi/ccusage), run through `bunx` / `npx` |
+| Daily tokens and cost, last 7 days | `prefix u` popup, one row per day (any key or Esc closes it) | [ccusage](https://github.com/ryoppippi/ccusage), run through `bunx` / `npx` |
 
 - Limits are account-wide, so they sit next to the clock instead of on any one session. Daily usage is something you check occasionally, so it lives in a popup instead of the bar.
 - ccusage estimates cost at API list price. On a subscription that is not your bill; use it to compare days.

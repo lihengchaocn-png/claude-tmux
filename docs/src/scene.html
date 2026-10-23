@@ -1,0 +1,180 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+:root{
+  --bg:#1f1f1f; --fg:#d4d4d4; --dim:#5c6370; --bar:#303030;
+  --green:#9acd3c; --red:#d70000; --yellow:#ffd700; --blue:#0087ff;
+  --red-fg:#ff5f5f; --yellow-fg:#ffd700; --blue-fg:#5fafff; --grey:#808080;
+  --a-red:#e06c75; --a-green:#4fc28c; --a-yellow:#e5b567; --a-blue:#61afef; --a-mag:#c678dd; --a-cyan:#3fb7c6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:transparent}
+body{font-family:'JetBrains Mono','PingFang SC','Noto Sans Mono CJK SC',monospace;font-size:14px;line-height:21px;color:var(--fg);-webkit-font-smoothing:antialiased}
+.stage{position:relative;overflow:hidden;padding:44px 56px;display:flex;flex-direction:column;align-items:center;gap:22px;
+  background:radial-gradient(1200px 600px at 15% 0%,#3b2a7a 0%,transparent 60%),radial-gradient(900px 500px at 100% 100%,#0e5a7a 0%,transparent 60%),linear-gradient(160deg,#141225,#0b1220)}
+.head{text-align:center;color:#fff;font-family:-apple-system,'PingFang SC',sans-serif}
+.head h1{font-size:30px;line-height:40px;font-weight:700;letter-spacing:.3px}
+.head p{font-size:16px;line-height:24px;color:#b9c0d4;margin-top:6px}
+.win{width:100%;border-radius:12px;overflow:hidden;background:var(--bg);box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08)}
+.title{height:34px;background:#2a2a2c;display:flex;align-items:center;padding:0 14px;gap:8px;position:relative}
+.dot{width:12px;height:12px;border-radius:50%}
+.title .t{position:absolute;left:0;right:0;text-align:center;font-family:-apple-system,sans-serif;font-size:13px;color:#9a9a9a}
+.status{height:21px;background:var(--bar);display:flex;white-space:pre;position:relative}
+.status .l{display:flex}.status .r{margin-left:auto;display:flex}
+.msg{position:absolute;inset:0;background:var(--yellow);color:#000;white-space:pre}
+.b{font-weight:700}
+.bd-ask{background:var(--red);color:#fff;font-weight:700}
+.bd-done{background:var(--yellow);color:#000;font-weight:700}
+.bd-run{background:var(--blue);color:#fff;font-weight:700}
+.nm-ask{color:var(--red-fg);font-weight:700}.nm-done{color:var(--yellow-fg);font-weight:700}.nm-run{color:var(--blue-fg)}.nm-{color:var(--grey)}
+.cur{background:var(--green);color:#1f1f1f;font-weight:700}
+.panes{display:flex;position:relative}
+.pane{padding:6px 12px;white-space:pre;flex:1;min-height:100%}
+.vsep{width:1px;background:#4a4a4a}
+.c-dim{color:var(--dim)}.c-g{color:var(--a-green)}.c-b{color:var(--a-blue)}.c-y{color:var(--a-yellow)}.c-m{color:var(--a-mag)}.c-r{color:var(--a-red)}.c-c{color:var(--a-cyan)}
+.cursor{background:var(--a-green);color:var(--bg)}
+.box{border:1px solid #c678dd;border-radius:6px;padding:6px 12px;margin:4px 0 0 0;white-space:pre}
+.cap{display:inline-flex;align-items:center;gap:10px;padding:9px 18px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#e8ebf5;font-family:-apple-system,'PingFang SC',sans-serif;font-size:16px}
+.cap kbd{font-family:'JetBrains Mono',monospace;font-size:13px;background:rgba(255,255,255,.14);padding:1px 7px;border-radius:5px}
+.chip{font-family:'JetBrains Mono',monospace;font-size:14px;padding:0 6px;border-radius:3px}
+/* states */
+.cards{display:flex;gap:22px;width:100%}
+.card{flex:1;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);padding:22px;font-family:-apple-system,'PingFang SC',sans-serif;color:#dfe3ee;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.card .mini{background:var(--bar);border-radius:6px;padding:8px 10px;font-family:'JetBrains Mono',monospace;white-space:pre;font-size:15px;line-height:22px}
+.card h3{font-size:20px;margin:18px 0 8px;color:#fff}
+.card p{font-size:14.5px;line-height:23px;color:#aab2c5}
+.card .ev{margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#8b93a7}
+/* popup / menu */
+.popup{position:absolute;border:1px solid #9a9a9a;background:var(--bg);white-space:pre}
+.popup .pt{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--bg);padding:0 4px}
+.sel{background:#3a3d41}
+.menu{position:absolute;border:1px solid #9a9a9a;background:var(--bg);white-space:normal;padding:0}
+.menu .row{white-space:pre}
+.menu .row{display:flex;padding:0 2px}.menu .row span:last-child{margin-left:auto;padding-left:24px}
+.menu .hl{background:var(--yellow);color:#000}
+.menu .sep{border-top:1px solid #9a9a9a;margin:10px 0}
+.menu .dis{color:#6a6a6a}
+.prow{display:grid;grid-template-columns:22px 110px 190px 1fr;white-space:pre}
+</style></head>
+<body><div id="root"></div>
+<script>
+const q=new URLSearchParams(location.search), scene=q.get('scene')||'hero', f=+(q.get('f')||0);
+const SPIN='◐◓◑◒';
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+// 渲染一个 session / window 项，完全对应 tmux.conf 里 @cc_badge_* / @cc_name_* 的逻辑
+function badge(st,fr){ if(st==='ask')return `<span class="bd-ask"> ! </span>`; if(st==='done')return `<span class="bd-done"> ✓ </span>`; if(st==='run')return `<span class="bd-run"> ${SPIN[fr%4]} </span>`; return ''}
+function item(name,st,cur,fr){ return badge(st,fr)+(cur?`<span class="cur"> ${name} </span>`:`<span class="nm-${st||''}"> ${name} </span>`)}
+function bar(sessions,windows,fr,msg){
+  const l=sessions.map(s=>item(s[0],s[1],s[2],fr)).join('');
+  const r=windows.map(w=>item(w[0],w[1],w[2],fr)).join('')+`<span style="color:#bcbcbc"> 2026-10-23 16:20 </span>`;
+  return `<div class="status"><div class="l">${l} </div><div class="r">${r}</div>${msg?`<div class="msg">${esc(msg)}</div>`:''}</div>`}
+function win(title,inner,h){return `<div class="win"><div class="title"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="t">${title}</span></div>${inner}</div>`}
+
+const shell=`<span class="c-c">~/notes</span> <span class="c-g">❯</span> git log --oneline -5
+<span class="c-y">a1c9e2f</span> Add weekly review template
+<span class="c-y">7d03b41</span> Reading list: distributed systems
+<span class="c-y">e52f9aa</span> Meeting notes cleanup
+<span class="c-y">19bc0d7</span> Draft Q4 goals
+<span class="c-y">c0ffee1</span> Initial notes
+
+<span class="c-c">~/notes</span> <span class="c-g">❯</span> vim todo.md
+<span class="c-c">~/notes</span> <span class="c-g">❯</span> <span class="cursor"> </span>`;
+const claudeAsk=`<span class="c-dim">&gt;</span> 把 README 的安装步骤改成中英双语，然后重新生成文档站
+
+<span class="c-g">●</span> <span class="b">Read</span>(README.md)
+  <span class="c-dim">⎿  Read 86 lines</span>
+
+<span class="c-g">●</span> <span class="b">Update</span>(README.md)
+  <span class="c-dim">⎿  Updated README.md with 24 additions and 9 removals</span>
+
+<span class="c-g">●</span> <span class="b">Bash</span>(npm run build:docs)
+<div class="box"><span class="b c-m">Bash command</span>
+
+  npm run build:docs
+  <span class="c-dim">Build documentation site</span>
+
+Do you want to proceed?
+<span class="c-b">❯ 1. Yes</span>
+  2. Yes, and don't ask again for <span class="b">npm run</span> commands
+  3. No, and tell Claude what to do differently</div>`;
+const claudeRun=(fr)=>`<span class="c-dim">&gt;</span> 给 /orders 接口加分页，补上测试
+
+<span class="c-g">●</span> <span class="b">Grep</span>(pattern: "router.get\\('/orders")
+  <span class="c-dim">⎿  Found 2 files</span>
+
+<span class="c-g">●</span> <span class="b">Update</span>(src/routes/orders.ts)
+  <span class="c-dim">⎿  Updated with 18 additions and 4 removals</span>
+
+<span class="c-a-red c-r">${'✻✳✢·'[fr%4]}</span> <span class="c-r">Writing tests…</span> <span class="c-dim">(esc to interrupt)</span>`;
+
+let html='';
+if(scene==='hero'){
+  // 0-3：后台在跑；4-5：docs 需要确认（状态栏弹提示）；6-7：红底 ! 常驻；8-11：prefix G 跳过去
+  const phase=f<4?0:f<6?1:f<8?2:3;
+  const docs=phase===0?'run':'ask';
+  let sessions,windows,body,msg=null;
+  if(phase<3){
+    sessions=[['main','',true],['api-server','run',false],['docs',docs,false],['frontend','done',false],['ml-train','',false]];
+    windows=[['1:zsh*','',true],['2:logs','',false]];
+    body=`<div class="panes" style="height:440px"><div class="pane">${shell}</div></div>`;
+    if(phase===1) msg='Claude 在 docs:1 等你确认（prefix G 跳过去）';
+  }else{
+    sessions=[['main','',false],['api-server','run',false],['docs','ask',true],['frontend','done',false],['ml-train','',false]];
+    windows=[['1:claude*','ask',true],['2:server','run',false]];
+    body=`<div class="panes" style="height:440px"><div class="pane">${claudeAsk}</div></div>`;
+  }
+  const caps=['<span class="chip bd-run">◐</span> 后台的 Claude 在跑：蓝底转圈',
+              '<span class="chip bd-ask">!</span> docs 里的 Claude 需要你确认：状态栏弹出提示',
+              '<span class="chip bd-ask">!</span> 红底标记常驻，直到你处理',
+              '按 <kbd>prefix G</kbd> 一键跳到最早等你的那个'];
+  html=`<div class="stage" style="width:1200px;height:720px">
+    <div class="head"><h1>一眼看出哪个 Claude 在等你</h1><p>Claude Code hooks → tmux 状态栏彩色徽标</p></div>
+    ${win('tmux',bar(sessions,windows,f,msg)+body)}
+    <div class="cap">${caps[phase]}</div></div>`;
+}
+if(scene==='states'){
+  const card=(mini,t,p,ev)=>`<div class="card"><div class="mini">${mini}</div><h3>${t}</h3><p>${p}</p><div class="ev">${ev}</div></div>`;
+  html=`<div class="stage" style="width:1200px;height:400px">
+    <div class="head"><h1>三种状态，三种颜色</h1><p>按 pane 记录，按 等确认 &gt; 跑完 &gt; 在跑 汇总到 window 和 session</p></div>
+    <div class="cards">
+      ${card(item('docs','ask',false,0)+'  '+item('docs','ask',true,0),'等你确认','权限请求、提问、计划审批。<br>状态栏同时弹一行提示（你正看着就不弹）。','PermissionRequest · Notification')}
+      ${card(item('frontend','done',false,0)+'  '+item('frontend','done',true,0),'跑完，等你查看','切到那个 pane 后自动消失。<br>你正盯着的 pane 跑完不会标记。','Stop · idle_prompt')}
+      ${card(item('api-server','run',false,0)+'  '+item('api-server','run',true,1),'正在跑','蓝底转圈 ◐◓◑◒，每秒一帧。<br>Claude 退出或 pane 关闭时自动清除。','UserPromptSubmit · PreToolUse')}
+    </div></div>`;
+}
+if(scene==='picker'){
+  const sessions=[['main','',true],['api-server','ask',false],['docs','ask',false],['frontend','done',false],['ml-train','run',false]];
+  const windows=[['1:zsh*','',true],['2:logs','',false]];
+  const rows=[['! 等确认','docs:1.1','~/code/docs'],['! 等确认','api-server:2.1','~/code/api-server'],['✓ 跑完','frontend:1.1','~/code/frontend'],['◐ 在跑','ml-train:1.2','~/code/ml-train']];
+  const list=rows.map((r,k)=>`<div class="prow${k?'':' sel'}"><span class="c-r">${k?' ':'▌'}</span><span>${r[0]}</span><span>${r[1]}</span><span class="c-dim">${r[2]}</span></div>`).join('');
+  const prev=claudeAsk.slice(claudeAsk.indexOf('<span class="c-g">●</span> <span class="b">Bash'));
+  const body=`<div class="panes" style="height:450px"><div class="pane c-dim" style="opacity:.4">${shell}</div>
+    <div class="popup" style="left:70px;right:70px;top:24px;bottom:22px;padding:8px 12px;white-space:normal"><span class="pt"> Claude </span>
+      <div style="white-space:pre"><span class="c-b">Claude&gt;</span> <span class="cursor"> </span></div>
+      <div class="c-dim" style="display:flex;align-items:center;gap:10px;margin:2px 0 4px"><span>  4/4</span><span style="flex:1;border-top:1px solid #4a4a4a"></span></div>
+      ${list}
+      <div style="border-top:1px solid #4a4a4a;margin:12px 0 6px"></div>
+      <div style="white-space:pre;padding:0 4px">${prev}</div></div></div>`;
+  html=`<div class="stage" style="width:1200px;height:710px">
+    <div class="head"><h1><kbd style="font-family:JetBrains Mono;font-size:24px;background:rgba(255,255,255,.14);padding:2px 10px;border-radius:7px">prefix g</kbd> 所有 Claude 一览</h1><p>等确认的排最前，下方预览它正在问什么，回车直接跳过去</p></div>
+    ${win('tmux',bar(sessions,windows,0,null)+body)}</div>`;
+}
+if(scene==='menu'){
+  const sessions=[['main','',true],['api-server','run',false],['docs','',false],['frontend','done',false],['ml-train','',false]];
+  const windows=[['1:zsh*','',true],['2:logs','',false]];
+  const m=`<div class="menu" style="left:262px;top:-1px;width:250px;padding:4px 0">
+<div class="row" style="justify-content:center"><span style="margin:0 auto;padding:0">frontend</span></div>
+<div class="row hl"><span>Switch To</span><span>(s)</span></div>
+<div class="row"><span>Clear Claude Mark</span><span>(c)</span></div>
+<div class="sep"></div>
+<div class="row"><span>Rename</span><span>(n)</span></div>
+<div class="row"><span>Kill</span><span>(X)</span></div>
+<div class="sep"></div>
+<div class="row"><span>New Session</span><span>(N)</span></div></div>`;
+  const body=`<div class="panes" style="height:260px"><div class="pane">${shell}</div>${m}</div>`;
+  html=`<div class="stage" style="width:1200px;height:520px">
+    <div class="head"><h1>可点击的 session 列表</h1><p>左键切换，右键菜单：切换 · 清除 Claude 标记 · 重命名 · 关闭 · 新建</p></div>
+    ${win('tmux',bar(sessions,windows,2,null)+body)}</div>`;
+}
+document.getElementById('root').innerHTML=html;
+</script></body></html>

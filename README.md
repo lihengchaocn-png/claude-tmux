@@ -5,7 +5,7 @@
 A macOS terminal setup (zsh + vim + tmux + iTerm2) built around two ideas:
 
 1. **[Session · Window · Pane, one job each](#1-session--window--pane-one-job-each)**: a clear hierarchy that works equally well with the mouse and the keyboard.
-2. **[Working alongside several AI agents](#2-working-alongside-several-claudes)**: one session per agent, with Claude Code's state shown as colored badges in the tmux status bar.
+2. **[Working alongside several AI agents](#2-working-alongside-several-claudes)**: one session per agent, with Claude Code's state shown as colored badges in the tmux status bar, plus your remaining limits and daily usage.
 
 ![See at a glance which Claude is waiting for you](docs/img/en/hero.gif)
 
@@ -80,6 +80,23 @@ Claude Code hooks write each pane's state into tmux options. The status bar rend
 > set -g @cc_lang en
 > ```
 
+### Limits and daily usage
+
+![Limits and usage, each in its place](docs/img/en/usage.png)
+
+Each kind of number goes where it belongs:
+
+| What | Where | Source |
+|---|---|---|
+| 5-hour / 7-day limit used | tmux status bar, right side, next to the clock. Green < 50%, yellow < 80%, red ≥ 80% (with reset time) | `rate_limits` in Claude Code's statusLine input, written into tmux by `cc-statusline.sh`. Until a Claude replies, it falls back to the cache in `~/.claude.json` |
+| Context used, model | Claude's own statusLine | statusLine input |
+| Daily tokens and cost, last 7 days | `prefix u` popup (scroll with less, `q` to close) | [ccusage](https://github.com/ryoppippi/ccusage), run through `bunx` / `npx` |
+
+- Limits are account-wide, so they sit next to the clock instead of on any one session. Daily usage is something you check occasionally, so it lives in a popup instead of the bar.
+- ccusage estimates cost at API list price. On a subscription that is not your bill; use it to compare days.
+- `rate_limits` is only provided to Pro / Max subscribers.
+- `install.sh claude` sets `statusLine` only if you don't already have one. If you do, it prints a note, and you can call `cc-statusline.sh` from your own script.
+
 ## Also included
 
 - **tmux**: vi copy mode (copies to the macOS clipboard). Sessions are restored with resurrect + continuum. zsh auto-attaches to a `main` session. Requires tmux ≥ 3.8.
@@ -95,7 +112,7 @@ cd tmux-claude-iterm2-setup
 bash scripts/install.sh shell    # zsh + Homebrew CLI tools + uv (overwrites ~/.zshrc)
 bash scripts/install.sh vim
 bash scripts/install.sh tmux
-bash scripts/install.sh claude   # Claude Code hook (needs jq), merged idempotently into ~/.claude/settings.json
+bash scripts/install.sh claude   # Claude Code hooks + statusLine (needs jq), merged idempotently into ~/.claude/settings.json
 bash scripts/install.sh iterm    # run from Terminal.app while iTerm2 is not running
 bash scripts/install.sh all      # everything above
 ```

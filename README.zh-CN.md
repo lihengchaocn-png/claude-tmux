@@ -5,7 +5,7 @@
 macOS 终端环境配置（zsh + vim + tmux + iTerm2），围绕两个想法：
 
 1. **[Session · Window · Pane 三层分工](#1-session--window--pane-三层分工)**：层次清楚，鼠标和键盘都一样顺手。
-2. **[和多个 AI agent 一起干活](#2-和多个-claude-一起干活)**：一个 agent 一个 session，Claude Code 的状态直接显示在 tmux 状态栏上。
+2. **[和多个 AI agent 一起干活](#2-和多个-claude-一起干活)**：一个 agent 一个 session，Claude Code 的状态直接显示在 tmux 状态栏上，还能看到剩余额度和每日用量。
 
 ![一眼看出哪个 Claude 在等你](docs/img/zh/hero.gif)
 
@@ -75,6 +75,23 @@ Claude Code 的 hook 把每个 pane 的状态写进 tmux 选项，状态栏据�
 - 与 iTerm2 自带的 Claude Code 集成 hook 共存。
 - 终端里的提示文字（跳转列表、提示条）默认是中文。在 `~/.tmux.conf` 里加 `set -g @cc_lang en` 可以切成英文。
 
+### 额度和每日用量
+
+![额度和用量，各放各的位置](docs/img/zh/usage.png)
+
+不同的数字放在各自该在的位置：
+
+| 显示什么 | 放在哪 | 数据来源 |
+|---|---|---|
+| 5 小时 / 7 天额度用了多少 | tmux 状态栏右侧，挨着时钟。低于 50% 绿色，低于 80% 黄色，80% 及以上红色并显示重置时间 | Claude Code 传给 statusLine 的 `rate_limits`，由 `cc-statusline.sh` 写进 tmux。Claude 还没回复过时，先用 `~/.claude.json` 里的缓存 |
+| 上下文占用、模型 | Claude 自己的 statusLine | statusLine 输入 |
+| 最近 7 天每日 token 和费用 | `prefix u` 弹窗（用 less 翻页，`q` 关闭） | [ccusage](https://github.com/ryoppippi/ccusage)，通过 `bunx` / `npx` 运行 |
+
+- 额度是整个账号共享的，不属于任何一个 session，所以放在时钟旁边。每日用量只是偶尔看一眼，所以放进弹窗，不占状态栏。
+- ccusage 的费用是按 API 标价估算的。订阅用户的实际账单不是这个数，只能用来比较哪天用得多。
+- 只有 Pro / Max 订阅用户才有 `rate_limits` 数据。
+- `install.sh claude` 只在你还没有 statusLine 时才设置；如果已经有了，会打印提示，你可以在自己的脚本里调用 `cc-statusline.sh`。
+
 ## 其他
 
 - **tmux**：vi 复制模式（复制到 macOS 剪贴板）；用 resurrect + continuum 自动恢复会话；zsh 启动时自动进入 `main` 会话。需要 tmux ≥ 3.8。
@@ -90,7 +107,7 @@ cd tmux-claude-iterm2-setup
 bash scripts/install.sh shell    # zsh + Homebrew CLI 工具 + uv（会覆盖 ~/.zshrc）
 bash scripts/install.sh vim
 bash scripts/install.sh tmux
-bash scripts/install.sh claude   # Claude Code hook（依赖 jq），幂等合并进 ~/.claude/settings.json
+bash scripts/install.sh claude   # Claude Code hook + statusLine（依赖 jq），幂等合并进 ~/.claude/settings.json
 bash scripts/install.sh iterm    # 需在 iTerm2 退出状态下、从 Terminal.app 运行
 bash scripts/install.sh all      # 以上全部
 ```

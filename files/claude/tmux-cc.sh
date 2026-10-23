@@ -9,9 +9,13 @@
 #   tmux-cc.sh jump [client]    fzf 列出所有 Claude pane（等确认 > 跑完 > 在跑），回车跳过去
 #   tmux-cc.sh next [client]    直接跳到最早开始等你的那个（没有则最早跑完的）
 #   tmux-cc.sh list             调试：输出排序后的列表
+#   tmux-cc.sh usage-cache      没有实时额度时，用 ~/.claude.json 里 Claude 缓存的额度兜底（tmux 启动时调用）
+#   tmux-cc.sh usage            prefix u 弹窗：额度详情 + 最近 7 天每日用量（ccusage）
 # 提示文字语言由 tmux 选项 @cc_lang 决定（zh 默认 / en）
 PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 TAB=$'\t'
+US=$'\x1f'
+CCUSAGE=ccusage@20.0.41
 
 # 提示语言：tmux 全局选项 @cc_lang = zh（默认）| en；只在要输出文字时加载
 load_lang() {
@@ -19,10 +23,18 @@ load_lang() {
     L_ASK='! waiting' L_DONE='✓ done   ' L_RUN='◐ working'
     M_NONE='No Claude sessions' M_IDLE='No Claude is waiting for you'
     M_ASK='Claude in %s is waiting for you (prefix G to jump)'
+    M_LIM='Claude limits (shared by the whole account)' M_5H='5 hours' M_7D='7 days ' M_RESET='resets'
+    M_DAILY='Daily usage, last 7 days (ccusage; cost is an estimate at API list price, not your bill)'
+    M_NOCC='bunx / npx not found, cannot run ccusage' M_NOLIM='No limit data yet (shown after Claude'"'"'s first reply)'
+    M_QUIT='q to close'
   else
     L_ASK='! 等确认' L_DONE='✓ 跑完  ' L_RUN='◐ 在跑  '
     M_NONE='没有 Claude 会话' M_IDLE='没有等你处理的 Claude'
     M_ASK='Claude 在 %s 等你确认（prefix G 跳过去）'
+    M_LIM='Claude 额度（整个账号共享）' M_5H='5 小时' M_7D='7 天  ' M_RESET='重置'
+    M_DAILY='最近 7 天每日用量（ccusage；费用按 API 标价估算，不是实际账单）'
+    M_NOCC='没有 bunx / npx，无法运行 ccusage' M_NOLIM='还没有额度数据（Claude 回复过一次后才有）'
+    M_QUIT='按 q 关闭'
   fi
 }
 
@@ -72,6 +84,56 @@ list_agents() {
     }' | sort -t"$TAB" -k1,1n -k2,2n | cut -f3-
 }
 
+# 没有实时额度时用 ~/.claude.json 的缓存兜底；tmux 里已有未过期的值就不动
+usage_cache() {
+  local now ts p5 r5 p7 r7 args=()
+  now=$(date +%s); ts=$(tmux show -gqv @cc_5h_ts)
+  [ -n "$ts" ] && [ "$ts" -gt "$now" ] && return 0
+  [ -f ~/.claude.json ] || return 0
+  IFS="$US" read -r p5 r5 p7 r7 < <(jq -r '
+    def ep: if . then sub("\\.[0-9]+"; "") | sub("\\+00:00$"; "Z") | fromdateiso8601 | tostring else "" end;
+    (.cachedUsageUtilization.utilization // {}) as $u
+    | [($u.five_hour.utilization // "" | tostring), ($u.five_hour.resets_at | ep),
+       ($u.seven_day.utilization // "" | tostring), ($u.seven_day.resets_at | ep)] | join("\u001f")' ~/.claude.json 2>/dev/null)
+  [ -n "$p5" ] && [ -n "$r5" ] && [ "$r5" -gt "$now" ] &&
+    args+=(set -gq @cc_5h "${p5%.*}" ';' set -gq @cc_5h_ts "$r5" ';' set -gq @cc_5h_at "$(date -r "$r5" +%H:%M)" ';')
+  [ -n "$p7" ] && [ -n "$r7" ] && [ "$r7" -gt "$now" ] &&
+    args+=(set -gq @cc_7d "${p7%.*}" ';' set -gq @cc_7d_ts "$r7" ';' set -gq @cc_7d_at "$(date -r "$r7" +%m/%d)" ';')
+  [ ${#args[@]} -gt 0 ] && tmux "${args[@]}"
+  return 0
+}
+
+# prefix u 弹窗内容：额度进度条 + ccusage 每日表格，用 less 翻页
+usage_report() {
+  load_lang
+  usage_cache
+  local now name p ts at n bar rest c
+  now=$(date +%s)
+  printf '\033[1m%s\033[0m\n\n' "$M_LIM"
+  local shown=0
+  for w in 5h 7d; do
+    p=$(tmux show -gqv "@cc_$w"); ts=$(tmux show -gqv "@cc_${w}_ts")
+    [ -n "$p" ] && [ -n "$ts" ] && [ "$ts" -gt "$now" ] || continue
+    shown=1
+    [ $w = 5h ] && name=$M_5H || name=$M_7D
+    [ $w = 5h ] && at=$(date -r "$ts" +%H:%M) || at=$(date -r "$ts" '+%m/%d %H:%M')
+    n=$(( (p + 2) / 5 )); [ $n -gt 20 ] && n=20
+    bar=$(printf '%*s' "$n" ''); rest=$(printf '%*s' $((20 - n)) ''); bar="${bar// /█}${rest// /░}"
+    if [ "$p" -ge 80 ]; then c=31; elif [ "$p" -ge 50 ]; then c=33; else c=32; fi
+    printf '  %s  \033[%sm%s %3s%%\033[0m   %s %s\n' "$name" "$c" "$bar" "$p" "$at" "$M_RESET"
+  done
+  [ $shown = 0 ] && printf '  %s\n' "$M_NOLIM"
+  printf '\n\033[1m%s\033[0m\n' "$M_DAILY"
+  if command -v bunx >/dev/null 2>&1; then
+    FORCE_COLOR=1 bunx "$CCUSAGE" daily --last 7 --offline 2>/dev/null
+  elif command -v npx >/dev/null 2>&1; then
+    FORCE_COLOR=1 npx -y "$CCUSAGE" daily --last 7 --offline 2>/dev/null
+  else
+    printf '  %s\n' "$M_NOCC"
+  fi
+  printf '\n\033[2m%s\033[0m\n' "$M_QUIT"
+}
+
 goto_pane() {  # $1 pane  $2 client（可空）
   local c=()
   case "$2" in ''|*'#{'*) ;; *) c=(-c "$2") ;; esac
@@ -84,6 +146,8 @@ case "$1" in
     gc; exit 0 ;;
   gc) gc; exit 0 ;;
   list) list_agents; exit 0 ;;
+  usage-cache) usage_cache; exit 0 ;;
+  usage) usage_report | less -RXS; exit 0 ;;
   jump)
     list=$(list_agents)
     if [ -z "$list" ]; then tmux display-message "$M_NONE"; exit 0; fi

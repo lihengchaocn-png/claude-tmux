@@ -1,0 +1,24 @@
+# 不用 Nerd Font 字形：iTerm2 不会自动回退到 Symbols Nerd Font，这些字形会显示成方框并挤歪文件名。
+# 文件图标：用一条匹配不到的占位规则替换默认的 dirs / files / exts 规则，再用 conds 让所有条目都是空图标。
+# 目录本身就是蓝色，不靠图标区分
+[icon]
+dirs  = [ { name = "__no_icon__", text = "" } ]
+files = [ { name = "__no_icon__", text = "" } ]
+exts  = [ { name = "__no_icon__", text = "" } ]
+conds = [
+  { if = "dir",  text = "" },
+  { if = "!dir", text = "" },
+]
+
+# 选中行两端的圆角、状态栏和标签栏的分隔符默认是 Powerline 字形（U+E0B4/E0B6 等）。
+# 选中行两端换成空格（换成空会让这一行少缩进一格），分隔符换成空
+[indicator]
+padding = { open = " ", close = " " }
+
+[status]
+sep_left  = { open = "", close = "" }
+sep_right = { open = "", close = "" }
+
+[tabs]
+sep_inner = { open = "", close = "" }
+sep_outer = { open = "", close = "" }

@@ -129,7 +129,7 @@ Each kind of number goes where it belongs:
 - **tmux**: vi copy mode (copies to the macOS clipboard). Sessions are restored with resurrect + continuum. zsh auto-attaches to a `main` session. Requires tmux ≥ 3.8.
 - **zsh**: no framework. Uses eza / bat / fzf / zoxide / starship / autosuggestions / syntax-highlighting, plus small fzf helpers `f`, `fv`, `rgi`, `cproj`.
 - **vim**: vim-plug with NERDTree, fugitive, lightline, and more.
-- **iTerm2**: "Moshi Dark" dynamic profile (JetBrains Mono + Noto Sans Mono CJK) and the Minimal theme. Symbols Nerd Font supplies yazi's file icons through macOS font fallback, so you don't have to change fonts.
+- **iTerm2**: "Moshi Dark" dynamic profile (JetBrains Mono + Noto Sans Mono CJK) and the Minimal theme.
 
 ## Install
 

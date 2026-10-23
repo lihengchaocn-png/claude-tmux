@@ -21,6 +21,7 @@ install_tmux() {
   mkdir -p ~/.config/tmux/bin ~/.config/yazi
   cp "$FILES"/tmux-bin/* ~/.config/tmux/bin/ && chmod +x ~/.config/tmux/bin/*
   backup ~/.config/yazi/yazi.toml;         cp "$FILES/yazi/yazi.toml" ~/.config/yazi/yazi.toml
+  backup ~/.config/yazi/theme.toml;        cp "$FILES/yazi/theme.toml" ~/.config/yazi/theme.toml
 
   if [[ ! -d ~/.tmux/plugins/tpm ]]; then
     git clone --depth 1 https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
@@ -71,8 +72,6 @@ install_iterm() {
   if command -v brew >/dev/null 2>&1; then
     brew list --cask font-jetbrains-mono >/dev/null 2>&1 || brew install --cask font-jetbrains-mono || true
     brew list --cask font-noto-sans-mono-cjk-sc >/dev/null 2>&1 || brew install --cask font-noto-sans-mono-cjk-sc || true
-    # yazi 的文件图标：只含图标的 Nerd Font，macOS 会自动回退过去，不用改终端字体
-    brew list --cask font-symbols-only-nerd-font >/dev/null 2>&1 || brew install --cask font-symbols-only-nerd-font || true
   fi
 
   # Dynamic Profile: Moshi Dark（完整配色/字体/边距）

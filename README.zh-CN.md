@@ -124,7 +124,7 @@ Claude Code 的 hook 把每个 pane 的状态写进 tmux 选项，状态栏据�
 - **tmux**：vi 复制模式（复制到 macOS 剪贴板）；用 resurrect + continuum 自动恢复会话；zsh 启动时自动进入 `main` 会话。需要 tmux ≥ 3.8。
 - **zsh**：不用框架；装了 eza / bat / fzf / zoxide / starship / autosuggestions / syntax-highlighting，另有 `f` `fv` `rgi` `cproj` 几个 fzf 小工具。
 - **vim**：vim-plug + NERDTree、fugitive、lightline 等。
-- **iTerm2**：Moshi Dark 动态 profile（JetBrains Mono + Noto Sans Mono CJK），Minimal 主题。yazi 的文件图标来自 Symbols Nerd Font，macOS 会自动回退到这个字体，不用换终端字体。
+- **iTerm2**：Moshi Dark 动态 profile（JetBrains Mono + Noto Sans Mono CJK），Minimal 主题。
 
 ## 安装
 

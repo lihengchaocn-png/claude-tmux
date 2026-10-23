@@ -44,8 +44,11 @@
 | `Cmd+Option+←↓↑→` | 切换 pane | `C-a h/j/k/l` |
 | `Cmd+Shift+Enter` | 放大 / 还原 pane | `C-a z` |
 | `Cmd+G` / `Cmd+Shift+G` | Claude 列表 / 跳到最早等你的 | `C-a g` / `C-a G` |
+| `Cmd+B` | 文件树侧栏（同 VS Code 开关侧栏） | `C-a e` |
+| `Cmd+E` | 看改动 + diff | `C-a v` |
+| `Cmd+U` | 额度和每日用量 | `C-a u` |
 
-低频操作继续用前缀。`Cmd+G` 占用了 iTerm2 的“查找下一个”，搜索改用 tmux 的复制模式。
+低频操作继续用前缀。`Cmd+G`、`Cmd+E` 占用了 iTerm2 的“查找下一个”和“用选中文本查找”，搜索改用 tmux 的复制模式。
 
 ### pane ⇄ window 互转
 

@@ -44,8 +44,11 @@ Prefix is `C-a`. Movement uses vim's `h j k l`. Splits open in the current direc
 | `Cmd+Option+←↓↑→` | move between panes | `C-a h/j/k/l` |
 | `Cmd+Shift+Enter` | zoom / unzoom pane | `C-a z` |
 | `Cmd+G` / `Cmd+Shift+G` | Claude list / jump to the one waiting longest | `C-a g` / `C-a G` |
+| `Cmd+B` | file tree sidebar (like the VS Code sidebar) | `C-a e` |
+| `Cmd+E` | changed files + diff | `C-a v` |
+| `Cmd+U` | limits and daily usage | `C-a u` |
 
-Less frequent actions keep the prefix. `Cmd+G` replaces iTerm2's "Find Next"; search with tmux copy mode instead.
+Less frequent actions keep the prefix. `Cmd+G` and `Cmd+E` replace iTerm2's "Find Next" and "Use Selection for Find"; search with tmux copy mode instead.
 
 ### Panes ⇄ windows
 

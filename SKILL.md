@@ -90,6 +90,8 @@ vim-plug 管理：vim-sensible、NERDTree、commentary、surround、repeat、fug
 - 状态栏 session 名右键：Switch To（非当前）、Clear Claude Mark（有 `@cc_s` 时）、Rename、Kill（当前 session 置灰）、New Session。session 和 window 标签右键都触发 `MouseDown3Status`，靠 `if -F "#{==:#{mouse_status_range},session}"` 分流；菜单项的条件写成 `##{?...}`，让 run-shell -C 只展开内层值、由 display-menu 判断显隐（否则展开成空串会被当成分隔线导致参数错位）。
 - 状态栏**左侧**列出所有 session（status-left），点击即切换（`range=session|…`），当前 session 绿底高亮；window 列表 `status-justify right` 靠右，紧挨日期时间（status-right）。
 
+**window 自动命名**（`automatic-rename-format`）：Claude Code 的进程名是版本号（如 `2.1.309`），所以按 `^[0-9]+.[0-9]+.[0-9]+$|^claude$` 识别它，取它写进 pane 标题的对话主题（去掉开头的 `✳`/转圈字符，截到 14 字）；标题还是默认的 `Claude Code` 时用目录名。空闲 shell 用目录名，其他程序用程序名。手动改过名（automatic-rename 关闭）的 window 不受影响。名字只在 pane 有新输出时刷新。正则里不能写 `{n}`，会和 tmux 格式的花括号冲突，用 `[.]` 重复代替。
+
 **其他**：状态栏在顶部、深灰底；`base-index 1`、`renumber-windows on`；`default-terminal tmux-256color` + RGB；`default-command "${SHELL}"`（非 login shell，避免 macOS `path_helper` 打乱 PATH）；history 50000；插件 tpm / tmux-sensible / tmux-resurrect / tmux-continuum（`@continuum-restore on`，开机自动恢复会话）；最后 `aggressive-resize off` 以兼容 iTerm2 `tmux -CC`。
 
 **Claude Code 状态提醒**：`~/.claude/hooks/tmux-cc.sh`（副本 `files/claude/tmux-cc.sh`；`install.sh claude` 部署：复制脚本并用 jq 幂等地挂到 `~/.claude/settings.json` 的 UserPromptSubmit / PreToolUse / PostToolUse / PermissionRequest / Notification / Stop / StopFailure / SessionEnd，与 iTerm2 的 cc-status 并列）。
@@ -112,7 +114,7 @@ vim-plug 管理：vim-sensible、NERDTree、commentary、surround、repeat、fug
   - 边距 左右 14 / 上下 8；无限回滚；开启 Mouse Reporting（tmux 鼠标需要）；Terminal Type `xterm-256color`。
 - 全局：主题 Minimal（`TabStyleWithAutomaticOption=5`）、单 tab 隐藏 tab bar、隐藏滚动条、允许剪贴板访问（OSC 52）、关闭按住弹重音。
 - 指针动作（plist `PointerActions`，均为 iTerm2 默认，未纳入脚本）：右键=上下文菜单、中键=粘贴、三指左右切 tab、上下切窗口。
-- Cmd 免前缀：Moshi Dark profile 的 `Keyboard Map`（Action 11 = Send Hex Code，发 `0x01` + tmux 键；键名格式 `0x字符-0x修饰键`，Cmd=0x100000、Shift=0x20000、Option=0x80000，方向键另加 NumPad 0x200000）：⌘D/⌘⇧D 分屏、⌘W 关 pane、⌘T 新 window、⌘1-9、⌘⌥方向键切 pane、⌘⇧Enter 放大、⌘G/⌘⇧G Claude 列表/跳转。Dynamic Profile 改了会自动重载，不用重启 iTerm2。
+- Cmd 免前缀：Moshi Dark profile 的 `Keyboard Map`（Action 11 = Send Hex Code，发 `0x01` + tmux 键；键名格式 `0x字符-0x修饰键`，Cmd=0x100000、Shift=0x20000、Option=0x80000，方向键另加 NumPad 0x200000）：⌘D/⌘⇧D 分屏、⌘W 关 pane、⌘T 新 window、⌘1-9、⌘⌥方向键切 pane、⌘⇧Enter 放大、⌘G/⌘⇧G Claude 列表/跳转、⌘B 文件树（prefix e）、⌘E 看改动（prefix v）、⌘U 额度用量（prefix u）。选键前用 System Events 读过 iTerm2 菜单快捷键：⌘B、⌘U 空闲；⌘E（用选中文本查找）、⌘G（查找下一个）被覆盖；⌘⇧V 是粘贴选中内容，不碰。Dynamic Profile 改了会自动重载，不用重启 iTerm2。
 - `prefix x`（⌘W）：前台是 zsh/bash/sh/fish 直接 kill-pane，否则 `confirm-before -c x` 再按 x 确认；用 shell 白名单而不是程序名，因为 Claude Code 的进程名是版本号。
 - tmux -CC：tmux window 以 tab 打开、不自动隐藏 client session、不用专用 profile、不同步剪贴板、不暂停警告、不用 iTerm 状态栏。
 

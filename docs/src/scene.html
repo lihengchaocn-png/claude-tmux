@@ -217,7 +217,7 @@ if(scene==='keys'){
   const col=(cls,title,sub,mouse,keys)=>`<div class="kc ${cls}"><div class="kh"><span class="kt">${title}</span><span class="ks">${sub}</span></div>
     <div class="kg">${T('鼠标','Mouse')}</div><ul>${mouse.join('')}</ul><div class="kg">${T('键盘','Keyboard')}</div><ul>${keys.join('')}</ul></div>`;
   html=`<div class="stage" style="width:1200px;height:800px">
-    <div class="head"><h1>${T('键鼠都顺手','Mouse and keyboard, both first-class')}</h1><p>${T('前缀 ','Prefix ')}${K('C-a')}${T('，下面的键都在前缀之后按；方向键用 vim 的 ',', all keys below come after it; vim-style ')}${K('h j k l')}${T('。常用的在 iTerm2 里直接按 ','. In iTerm2 the common ones are just ')}${K('⌘D')} ${K('⌘W')} ${K('⌘T')} ${K('⌘1-9')} ${K('⌘G')}</p></div>
+    <div class="head"><h1>${T('键鼠都顺手','Mouse and keyboard, both first-class')}</h1><p>${T('前缀 ','Prefix ')}${K('C-a')}${T('，下面的键都在前缀之后按；方向键用 vim 的 ',', all keys below come after it; vim-style ')}${K('h j k l')}${T('。常用的在 iTerm2 里直接按 ','. In iTerm2 the common ones are just ')}${K('⌘D')} ${K('⌘W')} ${K('⌘T')} ${K('⌘1-9')} ${K('⌘G')} ${K('⌘B')} ${K('⌘E')}</p></div>
     <div class="kcs">
     ${col('cs','Session',T('状态栏左侧','left of the status bar'),[
       li(T('左键点名字','Click a name'),T('切换','switch')),

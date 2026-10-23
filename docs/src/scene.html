@@ -58,7 +58,7 @@ body{font-family:'JetBrains Mono','PingFang SC','Noto Sans Mono CJK SC',monospac
 </style></head>
 <body><div id="root"></div>
 <script>
-const q=new URLSearchParams(location.search), scene=q.get('scene')||'hero', f=+(q.get('f')||0);
+const q=new URLSearchParams(location.search), scene=q.get('scene')||'hero', f=+(q.get('f')||0), lang=q.get('lang')||'zh';
 const SPIN='◐◓◑◒';
 const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
 // 渲染一个 session / window 项，完全对应 tmux.conf 里 @cc_badge_* / @cc_name_* 的逻辑
@@ -176,5 +176,34 @@ if(scene==='menu'){
     <div class="head"><h1>可点击的 session 列表</h1><p>左键切换，右键菜单：切换 · 清除 Claude 标记 · 重命名 · 关闭 · 新建</p></div>
     ${win('tmux',bar(sessions,windows,2,null)+body)}</div>`;
 }
+// lang=en：在最终 HTML 上按 中文→英文 替换（长串先替换，避免被短串截断）
+const EN={
+  '把 README 的安装步骤改成中英双语，然后重新生成文档站':'Make the README install steps bilingual, then rebuild the docs site',
+  '给 /orders 接口加分页，补上测试':'Add pagination to the /orders endpoint and write tests',
+  'Claude 在 docs:1 等你确认（prefix G 跳过去）':'Claude in docs:1 is waiting for you (prefix G to jump)',
+  '后台的 Claude 在跑：蓝底转圈':'Background Claudes at work: blue spinner',
+  'docs 里的 Claude 需要你确认：状态栏弹出提示':'Claude in docs needs your approval: a banner pops up',
+  '红底标记常驻，直到你处理':'The red badge stays until you deal with it',
+  '按 <kbd>prefix G</kbd> 一键跳到最早等你的那个':'Press <kbd>prefix G</kbd> to jump to the one waiting longest',
+  '一眼看出哪个 Claude 在等你':'See which Claude is waiting for you',
+  'Claude Code hooks → tmux 状态栏彩色徽标':'Claude Code hooks → colored badges in the tmux status bar',
+  '三种状态，三种颜色':'Three states, three colors',
+  '按 pane 记录，按 等确认 &gt; 跑完 &gt; 在跑 汇总到 window 和 session':'Tracked per pane, rolled up to window and session: waiting &gt; done &gt; working',
+  '权限请求、提问、计划审批。<br>状态栏同时弹一行提示（你正看着就不弹）。':'Permission requests, questions, plan approval.<br>A banner pops up too, unless you are already looking.',
+  '切到那个 pane 后自动消失。<br>你正盯着的 pane 跑完不会标记。':'Cleared when you focus that pane.<br>Not marked if you were already watching it.',
+  '蓝底转圈 ◐◓◑◒，每秒一帧。<br>Claude 退出或 pane 关闭时自动清除。':'Blue spinner ◐◓◑◒, one frame per second.<br>Cleared when Claude exits or the pane closes.',
+  '跑完，等你查看':'Done, not yet seen',
+  '等你确认':'Waiting for you',
+  '正在跑':'Working',
+  '! 等确认':'! waiting',
+  '✓ 跑完':'✓ done',
+  '◐ 在跑':'◐ working',
+  '</kbd> 所有 Claude 一览':'</kbd> Every Claude at a glance',
+  '等确认的排最前，下方预览它正在问什么，回车直接跳过去':'Waiting ones first, a preview of what each is asking, Enter to jump',
+  '可点击的 session 列表':'Clickable session list',
+  '左键切换，右键菜单：切换 · 清除 Claude 标记 · 重命名 · 关闭 · 新建':'Left-click to switch; right-click: Switch · Clear Claude Mark · Rename · Kill · New',
+};
+if(lang==='en') for(const k of Object.keys(EN).sort((a,b)=>b.length-a.length)) html=html.split(k).join(EN[k]);
+if(lang==='en' && /[\u4e00-\u9fff]/.test(html)) console.error('UNTRANSLATED: '+html.match(/[^<>]*[\u4e00-\u9fff][^<>]*/g).join(' | '));
 document.getElementById('root').innerHTML=html;
 </script></body></html>

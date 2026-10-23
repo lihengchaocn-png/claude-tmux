@@ -1,60 +1,66 @@
 # tmux-claude-iterm2-setup
 
-**中文** | [English](README.en.md)
+**English** | [中文](README.zh-CN.md)
 
-macOS 终端环境配置：zsh + vim + tmux + iTerm2，外加 **Claude Code ↔ tmux 状态提醒**。
+A macOS terminal setup — zsh + vim + tmux + iTerm2 — plus **Claude Code status badges in the tmux status bar**.
 
-![一眼看出哪个 Claude 在等你](docs/img/hero.gif)
+![See at a glance which Claude is waiting for you](docs/img/en/hero.gif)
 
-## Claude Code 状态提醒
+## Claude Code status in tmux
 
-通过 Claude Code hooks 把每个 pane 里 Claude 的状态写进 tmux，状态栏用彩色徽标显示：
+Claude Code hooks write each pane's Claude state into tmux, and the status bar shows it as colored badges:
 
-![三种状态，三种颜色](docs/img/states.png)
+![Three states, three colors](docs/img/en/states.png)
 
-| 徽标 | 含义 |
+| Badge | Meaning |
 |---|---|
-| 红底 `!` | 等你确认（权限请求 / 提问），同时状态栏弹一行提示 |
-| 黄底 `✓` | 跑完了，你还没看；切到那个 pane 自动消失 |
-| 蓝底 `◐◓◑◒` | 正在跑（每秒转一帧） |
+| red `!` | Waiting for you (permission request / question); a one-line banner also pops up on the status line |
+| yellow `✓` | Finished and you haven't looked yet; cleared when you focus that pane |
+| blue `◐◓◑◒` | Working (spinner advances once per second) |
 
-- 状态按 pane 记录，再按 等确认 > 跑完 > 在跑 汇总到 window 和 session，同一窗口多个 Claude 互不覆盖。
-- pane 退出、被 kill 时自动清理残留标记（检查 pane 里是否还有 `claude` 进程）。
-- `prefix g`：fzf 弹窗列出所有 Claude，带输出预览，回车跳过去；`prefix G`：直接跳到最早等你的那个。
+- State is tracked per pane, then rolled up to the window and session with priority waiting > done > working, so several Claudes in one window never overwrite each other.
+- Stale badges are cleaned up when a pane exits or is killed (it checks whether a `claude` process is still running in the pane).
+- `prefix g`: an fzf popup listing every Claude, with a live preview of its output; Enter jumps to it. `prefix G`: jump straight to the one that has been waiting longest.
 
-  ![prefix g 所有 Claude 一览](docs/img/picker.png)
+  ![prefix g: every Claude at a glance](docs/img/en/picker.png)
 
-- 状态栏左侧是可点击的 session 列表，右键 session 名有 Switch / Clear Claude Mark / Rename / Kill / New 菜单。
+- The left side of the status bar is a clickable session list; right-click a session name for Switch / Clear Claude Mark / Rename / Kill / New.
 
-  ![可点击的 session 列表](docs/img/menu.png)
+  ![Clickable session list](docs/img/en/menu.png)
 
-- 与 iTerm2 自带的 Claude Code 集成 hook 共存。
+- Coexists with iTerm2's built-in Claude Code integration hooks.
 
-## 其他
+> In-terminal text (picker labels, the banner) is Chinese by default. Switch it to English in `~/.tmux.conf`:
+>
+> ```tmux
+> set -g @cc_lang en
+> ```
 
-- **tmux**：前缀 `C-a`，vi 复制模式，右键菜单支持 pane ↔ window 互转，resurrect + continuum 自动恢复会话，zsh 启动自动进入 `main` 会话。需要 tmux ≥ 3.8。
-- **zsh**：无框架；eza / bat / fzf / zoxide / starship / autosuggestions / syntax-highlighting；`f` `fv` `rgi` `cproj` 等 fzf 小工具。
-- **vim**：vim-plug + NERDTree、fugitive、lightline 等。
-- **iTerm2**：Moshi Dark 动态 profile（JetBrains Mono + Noto Sans Mono CJK），Minimal 主题。
+## Also included
 
-## 安装
+- **tmux**: `C-a` prefix, vi copy mode, right-click menus with pane ↔ window conversion, resurrect + continuum session restore, zsh auto-attaches to a `main` session. Requires tmux ≥ 3.8.
+- **zsh**: no framework; eza / bat / fzf / zoxide / starship / autosuggestions / syntax-highlighting; small fzf helpers `f`, `fv`, `rgi`, `cproj`.
+- **vim**: vim-plug with NERDTree, fugitive, lightline, and more.
+- **iTerm2**: "Moshi Dark" dynamic profile (JetBrains Mono + Noto Sans Mono CJK), Minimal theme.
+
+## Install
 
 ```bash
 git clone https://github.com/lihengchaocn-png/tmux-claude-iterm2-setup.git
 cd tmux-claude-iterm2-setup
-bash scripts/install.sh shell    # zsh + Homebrew CLI 工具 + uv（会覆盖 ~/.zshrc）
+bash scripts/install.sh shell    # zsh + Homebrew CLI tools + uv (overwrites ~/.zshrc)
 bash scripts/install.sh vim
 bash scripts/install.sh tmux
-bash scripts/install.sh claude   # Claude Code hook（依赖 jq），幂等合并进 ~/.claude/settings.json
-bash scripts/install.sh iterm    # 需在 iTerm2 退出状态下、从 Terminal.app 运行
-bash scripts/install.sh all      # 以上全部
+bash scripts/install.sh claude   # Claude Code hook (needs jq), merged idempotently into ~/.claude/settings.json
+bash scripts/install.sh iterm    # run from Terminal.app while iTerm2 is not running
+bash scripts/install.sh all      # everything above
 ```
 
-被覆盖的文件会先备份为 `*.bak-<时间戳>`。`zprofile` 里配置的是清华 Homebrew 镜像，海外用户可以删掉那几行。
+Overwritten files are backed up as `*.bak-<timestamp>`. `zprofile` points Homebrew at the Tsinghua (TUNA) mirror in China; delete those lines if you don't need it.
 
-展示图是用 `docs/src/scene.html` 仿真渲染的（演示数据），改了配色后可以用 `bash docs/src/render.sh` 重新生成。
+The showcase images are rendered from `docs/src/scene.html` with demo data (English and Chinese sets under `docs/img/`); regenerate them with `bash docs/src/render.sh` after changing colors.
 
-`SKILL.md` 是给 Claude Code 用的 skill 说明（放在 `~/.claude/skills/terminal-setup/` 下即可被 Claude 识别），里面有更详细的实现细节。
+`SKILL.md` is a Claude Code skill (put this directory at `~/.claude/skills/terminal-setup/` and Claude will pick it up); it documents the implementation in more detail.
 
 ## License
 

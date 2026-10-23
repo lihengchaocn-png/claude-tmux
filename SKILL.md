@@ -97,6 +97,8 @@ vim-plug 管理：vim-sensible、NERDTree、commentary、surround、repeat、fug
 - tmux 钩子：`client-session-changed` / `session-window-changed` / `after-select-pane` → `tmux-cc.sh focus #{pane_id}`（清该 pane 的 done）；`pane-exited` / `after-kill-pane` / `session-closed` → `tmux-cc.sh gc`（pane 里已无 `claude` 进程的残留状态清掉，再重新汇总）。钩子里的路径用 `$HOME`，单引号里的 `~` 不会展开。
 - `prefix g`：fzf popup 列出所有 Claude（等确认 > 跑完 > 在跑，同状态按时间先后），预览 pane 输出，回车跳过去；`prefix G`：直接跳到最早等你的（没有则最早跑完的）。`prefix a` 被 tmux-sensible 占为 last-window，所以没用。
 - 等确认时 `display-message` 提示，正盯着那个 pane 时不提示；正盯着的 pane 跑完不标 done。调试：`tmux-cc.sh list`。
+- 提示文字语言由 tmux 选项 `@cc_lang`（zh 默认 / en）决定，tmux.conf 里显式设为 zh；脚本里 `load_lang` 只在要输出文字时才读。
+- README：英文 `README.md`（主）+ 中文 `README.zh-CN.md`；展示图由 `docs/src/scene.html?lang=en|zh` 仿真渲染，`bash docs/src/render.sh` 生成 `docs/img/en/`、`docs/img/zh/` 两套，中文翻译表在 scene.html 末尾的 `EN` 对象里。
 
 **zsh 集成**（`~/.zshrc` 的 `>>> tmux >>>` 块）：交互 shell 自动 `tmux new -A -s main`（本机与 ssh 登录都生效），跳过条件：已在 tmux 内、非交互（scp/rsync）、`TERM_PROGRAM=vscode`（VS Code / code-server 终端）、`NO_TMUX=1`。
 

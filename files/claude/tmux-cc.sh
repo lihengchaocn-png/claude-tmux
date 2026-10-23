@@ -8,8 +8,23 @@
 #   tmux-cc.sh gc               清理 Claude 已不在的 pane 上的残留状态，并重新汇总
 #   tmux-cc.sh jump [client]    fzf 列出所有 Claude pane（等确认 > 跑完 > 在跑），回车跳过去
 #   tmux-cc.sh next [client]    直接跳到最早开始等你的那个（没有则最早跑完的）
+#   tmux-cc.sh list             调试：输出排序后的列表
+# 提示文字语言由 tmux 选项 @cc_lang 决定（zh 默认 / en）
 PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 TAB=$'\t'
+
+# 提示语言：tmux 全局选项 @cc_lang = zh（默认）| en；只在要输出文字时加载
+load_lang() {
+  if [ "$(tmux show -gqv @cc_lang 2>/dev/null)" = en ]; then
+    L_ASK='! waiting' L_DONE='✓ done   ' L_RUN='◐ working'
+    M_NONE='No Claude sessions' M_IDLE='No Claude is waiting for you'
+    M_ASK='Claude in %s is waiting for you (prefix G to jump)'
+  else
+    L_ASK='! 等确认' L_DONE='✓ 跑完  ' L_RUN='◐ 在跑  '
+    M_NONE='没有 Claude 会话' M_IDLE='没有等你处理的 Claude'
+    M_ASK='Claude 在 %s 等你确认（prefix G 跳过去）'
+  fi
+}
 
 # 汇总一个 session：各 window 取其 pane 的最高优先级状态，session 取全部 pane 的
 sync_session() {
@@ -45,14 +60,15 @@ gc() {
   sync_all
 }
 
-# 按 等确认 > 跑完 > 在跑、同状态按时间早晚 排序，输出 "pane_id<TAB>显示文本"
+# 按 等确认 > 跑完 > 在跑、同状态按时间早晚 排序，输出 "pane_id<TAB>状态<TAB>显示文本"
 list_agents() {
+  load_lang
   tmux list-panes -a -F "#{@cc_p}${TAB}#{@cc_t}${TAB}#{pane_id}${TAB}#{session_name}:#{window_index}.#{pane_index}${TAB}#{pane_current_path}" |
-    awk -F'\t' -v OFS='\t' '$1 != "" {
+    awk -F'\t' -v OFS='\t' -v ask="$L_ASK" -v done="$L_DONE" -v run="$L_RUN" '$1 != "" {
       r = $1 == "ask" ? 1 : $1 == "done" ? 2 : 3
-      label = $1 == "ask" ? "! 等确认" : $1 == "done" ? "✓ 跑完  " : "◐ 在跑  "
+      label = $1 == "ask" ? ask : $1 == "done" ? done : run
       sub(ENVIRON["HOME"], "~", $5)
-      print r, ($2 == "" ? 0 : $2), $3, label "  " $4 "  " $5
+      print r, ($2 == "" ? 0 : $2), $3, $1, label "  " $4 "  " $5
     }' | sort -t"$TAB" -k1,1n -k2,2n | cut -f3-
 }
 
@@ -70,13 +86,13 @@ case "$1" in
   list) list_agents; exit 0 ;;
   jump)
     list=$(list_agents)
-    if [ -z "$list" ]; then tmux display-message "没有 Claude 会话"; exit 0; fi
-    sel=$(printf '%s\n' "$list" | fzf --delimiter="$TAB" --with-nth=2 --reverse --no-sort \
+    if [ -z "$list" ]; then tmux display-message "$M_NONE"; exit 0; fi
+    sel=$(printf '%s\n' "$list" | fzf --delimiter="$TAB" --with-nth=3 --reverse --no-sort \
       --prompt 'Claude> ' --preview 'tmux capture-pane -ep -t {1} | tail -n 60' --preview-window 'down,70%') || exit 0
     goto_pane "${sel%%"$TAB"*}" "$2"; exit 0 ;;
   next)
-    first=$(list_agents | awk -F'\t' '$2 !~ /在跑/ { print $1; exit }')
-    if [ -z "$first" ]; then tmux display-message "没有等你处理的 Claude"; exit 0; fi
+    first=$(list_agents | awk -F'\t' '$2 != "run" { print $1; exit }')
+    if [ -z "$first" ]; then tmux display-message "$M_IDLE"; exit 0; fi
     goto_pane "$first" "$2"; exit 0 ;;
 esac
 
@@ -119,6 +135,8 @@ sync_session "$sid"
 
 # 等确认时提示一下（正盯着这个 pane 就不提示）
 if [ "$st" = ask ] && [ $viewing = 0 ]; then
-  tmux display-message -d 4000 "Claude 在 $where 等你确认（prefix G 跳过去）"
+  load_lang
+  # shellcheck disable=SC2059
+  tmux display-message -d 4000 "$(printf "$M_ASK" "$where")"
 fi
 exit 0

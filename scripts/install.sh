@@ -108,8 +108,6 @@ install_claude() {
   backup ~/.claude/hooks/tmux-cc.sh; cp "$FILES/claude/tmux-cc.sh" ~/.claude/hooks/tmux-cc.sh
   backup ~/.claude/hooks/cc-statusline.sh; cp "$FILES/claude/cc-statusline.sh" ~/.claude/hooks/cc-statusline.sh
   chmod +x ~/.claude/hooks/tmux-cc.sh ~/.claude/hooks/cc-statusline.sh
-  # prefix u 的每日用量用 ccusage（通过 bunx / npx 运行，固定版本，首次会下载）
-  command -v bunx >/dev/null 2>&1 || command -v npx >/dev/null 2>&1 || echo "  !! 没有 bunx / npx：prefix u 里的每日用量不可用（brew install oven-sh/bun/bun 或 node）"
 
   # 把 hook 并入 settings.json（幂等：已挂过的事件跳过；保留原有 hook，如 iTerm2 的 cc-status）
   local st=~/.claude/settings.json cmd="$HOME/.claude/hooks/tmux-cc.sh"
@@ -121,13 +119,13 @@ install_claude() {
       elif (.hooks[$ev] | length) > 0 then .hooks[$ev][0].hooks += [{"type":"command","command":$cmd}]
       else .hooks[$ev] = [{"hooks":[{"type":"command","command":$cmd}]}] end)
   ' "$st" > "$st.tmp" && mv "$st.tmp" "$st"
-  # statusLine：没有就设成 cc-statusline.sh（会话信息 + 把额度写进 tmux）；已有别的就不覆盖
+  # statusLine：没有就设成 cc-statusline.sh（模型、上下文、额度）；已有别的就不覆盖
   local sl="$HOME/.claude/hooks/cc-statusline.sh" cur
   cur=$(jq -r '.statusLine.command // empty' "$st")
   if [[ -z "$cur" ]]; then
     jq --arg c "$sl" '.statusLine = {"type":"command","command":$c,"padding":0}' "$st" > "$st.tmp" && mv "$st.tmp" "$st"
   elif [[ "$cur" != "$sl" ]]; then
-    echo "  !! settings.json 已有 statusLine（${cur}），未覆盖；tmux 状态栏的额度显示需要它调用 ${sl}"
+    echo "  !! settings.json 已有 statusLine（${cur}），未覆盖；想在 Claude 底部看到额度可以在自己的脚本里调用 ${sl}"
   fi
   echo "  已挂到 ${st}；新开的 Claude Code 会话生效（状态栏配色在 tmux.conf 里，需同时部署 tmux）"
 }

@@ -7,7 +7,7 @@
 两个核心想法：
 
 1. **[Session · Window · Pane 三层分工](#1-session--window--pane-三层分工)**：层次清楚，鼠标和键盘都一样顺手。
-2. **[和多个 AI agent 一起干活](#2-和多个-claude-一起干活)**：一个 agent 一个 session，Claude Code 的状态直接显示在 tmux 状态栏上，还能看到剩余额度和每日用量。
+2. **[和多个 AI agent 一起干活](#2-和多个-claude-一起干活)**：一个 agent 一个 session，Claude Code 的状态直接显示在 tmux 状态栏上。
 
 ![claude-tmux：Session · Window · Pane 三级设计与 agent 协作](docs/img/zh/hero.gif)
 
@@ -46,7 +46,6 @@
 | `Cmd+G` / `Cmd+Shift+G` | Claude 列表 / 跳到最早等你的 | `C-a g` / `C-a G` |
 | `Cmd+B` | 文件树侧栏（同 VS Code 开关侧栏） | `C-a e` |
 | `Cmd+E` | 看改动 + diff | `C-a v` |
-| `Cmd+U` | 额度和每日用量 | `C-a u` |
 
 低频操作继续用前缀。`Cmd+G`、`Cmd+E` 占用了 iTerm2 的“查找下一个”和“用选中文本查找”，搜索改用 tmux 的复制模式。
 
@@ -63,7 +62,7 @@
 ![和多个 Claude 一起干活](docs/img/zh/agents.png)
 
 1. **一个 agent 一个 session。** 在每个项目目录里用 `tn api-server` 进入或新建 session，然后在里面跑 `claude`。状态栏左边就成了你的 agent 队列。
-2. **后台跑，不用盯。** 蓝色转圈表示还在干活。你待在自己的 session 里，不用挨个切过去看。
+2. **后台跑，不用盯。** ◐ 表示还在干活。你待在自己的 session 里，不用挨个切过去看。
 3. **需要你时冒红。** 红底 `!`，状态栏同时弹一行提示。`prefix G` 直接跳到最早开始等你的那个；`prefix g` 列出所有 Claude，可以先预览它在问什么；也可以直接点 session 名。
 4. **批准，再回来。** 批准后标记变回蓝色。跑完的显示黄色 `✓`，你看过之后自动消失。
 
@@ -73,7 +72,7 @@
 
 ![看文件、看改动、顺手改](docs/img/zh/files.png)
 
-- **`prefix v`：Claude 刚才改了什么。** 弹窗列出当前 pane 所在 git 仓库里有改动的文件和未跟踪的文件，右侧用 [delta](https://github.com/dandavison/delta) 显示 diff。回车用 `$EDITOR` 打开，`ctrl-r` 刷新，Esc 关闭。偶尔才看，所以和 `prefix g`、`prefix u` 一样做成弹窗。
+- **`prefix v`：Claude 刚才改了什么。** 弹窗列出当前 pane 所在 git 仓库里有改动的文件和未跟踪的文件，右侧用 [delta](https://github.com/dandavison/delta) 显示 diff。回车用 `$EDITOR` 打开，`ctrl-r` 刷新，Esc 关闭。偶尔才看，所以和 `prefix g` 一样做成弹窗。
 - **`prefix e`：文件树侧栏。** 在当前 pane 左侧开关一个约 30% 宽的 [yazi](https://github.com/sxyazi/yazi)，目录跟随当前 pane。它要和 Claude 并排看，所以做成 pane，也能用 `prefix !` 拆成独立 window。侧栏太窄不适合编辑，文本文件会在弹窗里用 `$EDITOR` 打开。
 - Claude Code 能发现文件在它读过之后被改过，不会互相覆盖；但最好不要在它正在改某个文件时去改同一个文件。
 
@@ -87,7 +86,7 @@ Claude Code 的 hook 把每个 pane 的状态写进 tmux 选项，状态栏据�
 |---|---|
 | 红底 `!` | 等你确认（权限请求 / 提问）。状态栏同时弹一行提示，你正看着那个 pane 时不弹 |
 | 黄底 `✓` | 跑完了，你还没看。切到那个 pane 后自动消失 |
-| 蓝底 `◐◓◑◒` | 正在跑，每秒转一帧 |
+| `◐` | 正在跑 |
 | 暗蓝底 `◌` | 这一轮已结束，但后台任务还在跑（后台命令、Monitor），跑完 Claude 会自己继续，不用你管 |
 
 - 状态按 pane 记录，再按 等确认 > 跑完 > 在跑 > 后台 的优先级汇总到 window 和 session，不会互相覆盖。
@@ -101,22 +100,13 @@ Claude Code 的 hook 把每个 pane 的状态写进 tmux 选项，状态栏据�
   ![可点击的 session 列表](docs/img/zh/menu.png)
 
 - 与 iTerm2 自带的 Claude Code 集成 hook 共存。
-- 终端里的提示文字（跳转列表、提示条）默认是中文。在 `~/.tmux.conf` 里加 `set -g @cc_lang en` 可以切成英文。
+- 终端里的提示文字（跳转列表）默认是中文。在 `~/.tmux.conf` 里加 `set -g @cc_lang en` 可以切成英文。
 
-### 额度和每日用量
+### 额度
 
-![额度和用量，各放各的位置](docs/img/zh/usage.png)
+Claude Code 底部那一行（statusLine，由 `cc-statusline.sh` 输出）显示：模型 · 上下文占用 · 5 小时 / 7 天额度。百分比低于 50% 绿色，低于 80% 黄色，80% 及以上红色。
 
-不同的数字放在各自该在的位置：
-
-| 显示什么 | 放在哪 | 数据来源 |
-|---|---|---|
-| 5 小时 / 7 天额度用了多少 | tmux 状态栏右侧，挨着时钟。低于 50% 绿色，低于 80% 黄色，80% 及以上红色并显示重置时间 | Claude Code 传给 statusLine 的 `rate_limits`，由 `cc-statusline.sh` 写进 tmux。Claude 还没回复过时，先用 `~/.claude.json` 里的缓存 |
-| 上下文占用、模型 | Claude 自己的 statusLine | statusLine 输入 |
-| 最近 7 天每日 token 和费用 | `prefix u` 弹窗，每天一行（按任意键或 Esc 关闭） | [ccusage](https://github.com/ryoppippi/ccusage)，通过 `bunx` / `npx` 运行 |
-
-- 额度是整个账号共享的，不属于任何一个 session，所以放在时钟旁边。每日用量只是偶尔看一眼，所以放进弹窗，不占状态栏。
-- ccusage 的费用是按 API 标价估算的。订阅用户的实际账单不是这个数，只能用来比较哪天用得多。
+- 额度是整个账号共享的，每个 Claude 底部显示的都是同一个数。
 - 只有 Pro / Max 订阅用户才有 `rate_limits` 数据。
 - `install.sh claude` 只在你还没有 statusLine 时才设置；如果已经有了，会打印提示，你可以在自己的脚本里调用 `cc-statusline.sh`。
 

@@ -46,7 +46,6 @@ Prefix is `C-a`. Movement uses vim's `h j k l`. Splits open in the current direc
 | `Cmd+G` / `Cmd+Shift+G` | Claude list / jump to the one waiting longest | `C-a g` / `C-a G` |
 | `Cmd+B` | file tree sidebar (like the VS Code sidebar) | `C-a e` |
 | `Cmd+E` | changed files + diff | `C-a v` |
-| `Cmd+U` | limits and daily usage | `C-a u` |
 
 Less frequent actions keep the prefix. `Cmd+G` and `Cmd+E` replace iTerm2's "Find Next" and "Use Selection for Find"; search with tmux copy mode instead.
 
@@ -73,7 +72,7 @@ Inside a session, combine this with part 1. Keep Claude in window 1 and the serv
 
 ![Browse, review, tweak](docs/img/en/files.png)
 
-- **`prefix v`: what did Claude change?** A popup lists the changed and untracked files of the current pane's git repo, with a [delta](https://github.com/dandavison/delta) diff on the right. Enter opens the file in `$EDITOR`, `ctrl-r` refreshes, Esc closes. It is occasional, so it is a popup, like `prefix g` and `prefix u`.
+- **`prefix v`: what did Claude change?** A popup lists the changed and untracked files of the current pane's git repo, with a [delta](https://github.com/dandavison/delta) diff on the right. Enter opens the file in `$EDITOR`, `ctrl-r` refreshes, Esc closes. It is occasional, so it is a popup, like `prefix g`.
 - **`prefix e`: file tree sidebar.** Toggles [yazi](https://github.com/sxyazi/yazi) in a pane on the left (about 30% wide), opened in the current pane's directory. You browse next to Claude, so it is a pane, and `prefix !` can break it out into its own window. Text files open in `$EDITOR` in a popup, because the sidebar is too narrow to edit in.
 - Claude Code notices when a file changed after it read it, so you won't overwrite each other. Still, avoid editing a file while Claude is in the middle of editing it.
 
@@ -87,7 +86,7 @@ Claude Code hooks write each pane's state into tmux options. The status bar rend
 |---|---|
 | red `!` | Waiting for you (permission request / question). A banner also shows on the status line, unless you're already looking at that pane. |
 | yellow `✓` | Finished and you haven't looked yet. Cleared when you focus that pane. |
-| blue `◐◓◑◒` | Working. The spinner advances once per second. |
+| `◐` | Working. |
 | dark blue `◌` | The turn has ended, but background work (background commands, Monitor) is still running. Claude picks up again when it finishes, so nothing is needed from you. |
 
 - State is tracked per pane. It is rolled up to windows and sessions with the priority waiting > done > working > background, so nothing gets overwritten.
@@ -108,20 +107,11 @@ Claude Code hooks write each pane's state into tmux options. The status bar rend
 > set -g @cc_lang en
 > ```
 
-### Limits and daily usage
+### Limits
 
-![Limits and usage, each in its place](docs/img/en/usage.png)
+Claude Code's bottom line (its statusLine, printed by `cc-statusline.sh`) shows the model, context used, and the 5-hour / 7-day limits. Green below 50%, yellow below 80%, red at 80% and above.
 
-Each kind of number goes where it belongs:
-
-| What | Where | Source |
-|---|---|---|
-| 5-hour / 7-day limit used | tmux status bar, right side, next to the clock. Green < 50%, yellow < 80%, red ≥ 80% (with reset time) | `rate_limits` in Claude Code's statusLine input, written into tmux by `cc-statusline.sh`. Until a Claude replies, it falls back to the cache in `~/.claude.json` |
-| Context used, model | Claude's own statusLine | statusLine input |
-| Daily tokens and cost, last 7 days | `prefix u` popup, one row per day (any key or Esc closes it) | [ccusage](https://github.com/ryoppippi/ccusage), run through `bunx` / `npx` |
-
-- Limits are account-wide, so they sit next to the clock instead of on any one session. Daily usage is something you check occasionally, so it lives in a popup instead of the bar.
-- ccusage estimates cost at API list price. On a subscription that is not your bill; use it to compare days.
+- Limits are account-wide, so every Claude shows the same numbers.
 - `rate_limits` is only provided to Pro / Max subscribers.
 - `install.sh claude` sets `statusLine` only if you don't already have one. If you do, it prints a note, and you can call `cc-statusline.sh` from your own script.
 

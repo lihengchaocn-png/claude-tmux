@@ -16,7 +16,6 @@ for L in en zh; do
   shot "scene=keys&lang=$L"   1200,800 keys.png
   shot "scene=menus&lang=$L"  1200,700 menus.png
   shot "scene=agents&lang=$L" 1200,590 agents.png
-  shot "scene=usage&lang=$L"  1200,740 usage.png
   shot "scene=files&lang=$L"  1200,700 files.png
   for f in $(seq 0 11); do shot "scene=hero2&f=$f&lang=$L" 1200,720 "frame-$f.png"; done
   mkdir -p "$OUT/$L"

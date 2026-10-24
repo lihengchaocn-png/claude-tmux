@@ -79,7 +79,7 @@ vim-plug 管理：vim-sensible、NERDTree、commentary、surround、repeat、fug
 | `prefix \|` / `prefix -` | 左右 / 上下分屏（继承当前路径） |
 | `prefix c` | 新 window（继承当前路径） |
 | `prefix h/j/k/l` | 切 pane；`H/J/K/L` 按住可重复，调大小 5 格 |
-| `prefix @` / `prefix #` | 选一个 window 并入当前 window（左右 / 上下） |
+| `prefix @` / `prefix #` | 选一个 window 并入当前 window（左右 / 上下；整个 window 的所有 pane 都搬过来） |
 | `prefix !` | 反向：把当前 pane 拆成独立 window（tmux 默认） |
 | 复制模式 | vi 键位，`v` 开始选择，`y` 复制到 macOS 剪贴板（pbcopy）；滚轮每格 5 行 |
 | `prefix I` | TPM 安装插件 |
@@ -87,8 +87,8 @@ vim-plug 管理：vim-sensible、NERDTree、commentary、surround、repeat、fug
 
 **鼠标**（`mouse on`）：
 - pane 上右键（或 iTerm2 里 Cmd+右键，tmux 收到的是 `M-MouseDown3Pane`）：tmux 3.8 默认菜单 + **Break to Window**。绑在 root 表上**总是弹 tmux 菜单**，即使程序（如 Claude Code）接管了鼠标。
-- 状态栏 window 标签右键：**Join Here (Side/Below)** 把该 window 并入当前 window、Rename、Kill、New After/At End。实现上用 `run-shell -C` 先展开 window id，再以当前 window 为目标弹菜单（3.8 下以非当前 window 的 pane 为目标时菜单不显示）。
-- 状态栏 session 名右键：Switch To（非当前）、Clear Claude Mark（有 `@cc_s` 时）、Rename、Kill（当前 session 置灰）、New Session。session 和 window 标签右键都触发 `MouseDown3Status`，靠 `if -F "#{==:#{mouse_status_range},session}"` 分流；菜单项的条件写成 `##{?...}`，让 run-shell -C 只展开内层值、由 display-menu 判断显隐（否则展开成空串会被当成分隔线导致参数错位）。
+- 状态栏 window 标签右键：**Join Here (Side/Below)** 把该 window 并入当前 window、Rename、Kill、New After/At End。菜单弹在**当前** window 上时（点击 / 双击标签会先 switch 过去，右键当前标签也是），Join Here 隐藏，换成 **Join Into ‹上一个 window›(Side/Below)**（目标 = `#{W:#{?window_last_flag,#{window_id},}}`，把当前 window 并回切换前的 window，等于在那边右键它选 Join Here；没有上一个 window 时隐藏）和 **Join Window Here...**（`send-keys -K C-a @` 复用 prefix @）。合并统一走 `~/.config/tmux/bin/join-window <src> <dst> -h|-v`（副本 `files/tmux-bin/join-window`）：tmux 的 `join-pane -s <window>` 只搬活动 pane，脚本把所有 pane 依次搬过去（第一个放 dst 活动 pane 旁边，其余按 `-l` 百分比均分叠成一列 / 一行），焦点回到 src 原来的活动 pane。prefix @ / # 用 `run-shell -C "choose-window -Z '…join-window %% #{window_id} -h'"`：-C 先把当前 window id 展开，`%%` 原样留给 choose-window。实现上用 `run-shell -C` 先展开 window id，再以当前 window 为目标弹菜单（3.8 下以非当前 window 的 pane 为目标时菜单不显示）。
+- 状态栏 session 名右键：Switch To（非当前）、Clear Claude Mark（有 `@cc_s` 时）、Rename、Kill（当前 session 置灰）、New Session。session 和 window 标签右键都触发 `MouseDown3Status`，靠 `if -F "#{==:#{mouse_status_range},session}"` 分流；菜单项的条件写成 `##{?##{==:#{条件},1},…}`：run-shell -C 只展开内层值、由 display-menu 判断显隐（否则展开成空串会被当成分隔线导致参数错位）；必须包一层 `#{==:…,1}`，只写 `##{?#{条件},…}` 展开后是 `#{?1,…}`，tmux 把裸的 1/0 当变量名查找，永远为假。
 - 触屏（手机 / iPad 没有右键）：**点当前**这个 session / window 标签，弹出和右键相同的菜单；点其他标签照常切换。iOS 客户端会把双击当成自己的手势（只有震动、不发给 tmux），所以没用 DoubleClick1Status。实现：`MouseDown1Status` 先 `run-shell -C` 按鼠标目标算出“点的是不是当前项”存进 `@tap_cur`，再 `switch-client -t =`，最后 `if -F "#{@tap_cur}"` 执行 `MouseDown3Status` 同样的命令。iTerm2 上点当前项也会弹菜单（原来点当前项什么都不做）。
 - 状态栏**左侧**列出所有 session（status-left），点击即切换（`range=session|…`），当前 session 绿底高亮；window 列表 `status-justify right` 靠右，紧挨日期时间（status-right）。
 

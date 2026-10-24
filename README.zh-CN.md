@@ -54,7 +54,7 @@
 
 ![右键菜单](docs/img/zh/menus.png)
 
-- 右键 **window 标签** → *Join Here (Side / Below)*，把那个 window 作为 pane 并到当前 window。键盘上是 `prefix @` / `prefix #`，会弹出选择器。
+- 右键 **window 标签** → *Join Here (Side / Below)*，把那个 window（连同它所有的 pane）并到当前 window。点击或双击标签会先切过去，这时菜单里换成 *Join Into ‹上一个 window›*，效果和在原来的 window 里右键它一样。键盘上是 `prefix @` / `prefix #`，会弹出选择器。
 - 右键 **pane** → *Break to Window*，把它拆回独立 window。键盘上是 `prefix !`。
 - pane 菜单是 tmux 3.8 的默认菜单（分屏、浮动、交换、缩放……）加上 *Break to Window*。即使 pane 里的程序（比如 Claude Code）接管了鼠标，菜单也照样弹出。iTerm2 里 Cmd+右键也可以。
 

@@ -54,7 +54,7 @@ Less frequent actions keep the prefix. `Cmd+G` and `Cmd+E` replace iTerm2's "Fin
 
 ![Right-click menus](docs/img/en/menus.png)
 
-- Right-click a **window tab** → *Join Here (Side / Below)* pulls that window into the current one as a pane. Keyboard: `prefix @` / `prefix #` opens a picker.
+- Right-click a **window tab** → *Join Here (Side / Below)* pulls that whole window (all its panes) into the current one. Tapping or double-clicking a tab switches to it first, so that menu offers *Join Into ‹previous window›* instead: same result as right-clicking it from where you were. Keyboard: `prefix @` / `prefix #` opens a picker.
 - Right-click a **pane** → *Break to Window* turns it back into its own window. Keyboard: `prefix !`.
 - The pane menu is tmux 3.8's default menu (split, float, swap, zoom…) plus *Break to Window*. It always opens, even when the program in the pane (such as Claude Code) captures the mouse. In iTerm2, Cmd+right-click works too.
 

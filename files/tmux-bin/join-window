@@ -1,0 +1,20 @@
+#!/bin/bash
+# 把 src window 的所有 pane 并入 dst window（tmux 的 join-pane 只搬一个 pane），焦点落在 src 原来的活动 pane 上
+# 用法：join-window <src> <dst> [-h|-v]   src / dst 是任意 tmux 目标（window id、session:index 等）
+#   -h：第一个 pane 放到 dst 当前 pane 右边，其余在它下面叠成一列；-v：放到下面，其余在它右边排成一行（均分）
+# 右键 / 点击 window 菜单的 Join Here、Join Into，以及 prefix @ / # 都用它
+PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+src=$(tmux display -p -t "$1" '#{window_id}' 2>/dev/null)
+dst=$(tmux display -p -t "$2" '#{window_id}' 2>/dev/null)
+dir=${3:--h}
+[ -n "$src" ] && [ -n "$dst" ] && [ "$src" != "$dst" ] || exit 0
+[ "$dir" = -h ] && rest=-v || rest=-h
+active=$(tmux display -p -t "$src" '#{pane_id}')
+panes=($(tmux list-panes -t "$src" -F '#{pane_id}'))
+n=${#panes[@]}
+tmux join-pane "$dir" -s "${panes[0]}" -t "$dst" || exit 0
+# 第 i 个 pane 从上一个里切出 (n-i)/(n-i+1)，最后每个 pane 一样大
+for ((i = 1; i < n; i++)); do
+  tmux join-pane "$rest" -l "$((100 * (n - i) / (n - i + 1)))%" -s "${panes[i]}" -t "${panes[i-1]}"
+done
+tmux select-window -t "$dst" \; select-pane -t "$active"

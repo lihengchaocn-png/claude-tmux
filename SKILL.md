@@ -83,16 +83,20 @@ vim-plug 管理：vim-sensible、NERDTree、commentary、surround、repeat、fug
 | `prefix !` | 反向：把当前 pane 拆成独立 window（tmux 默认） |
 | 复制模式 | vi 键位，`v` 开始选择，`y` 复制到 macOS 剪贴板（pbcopy）；滚轮每格 5 行 |
 | `prefix I` | TPM 安装插件 |
+| `prefix Space` | 常用操作菜单（新 window、分屏、放大、关 pane、切换、Claude 列表、滚动、detach），按字母或点选；触屏客户端上 `F1` 也能打开。覆盖了默认的 next-layout |
 
 **鼠标**（`mouse on`）：
 - pane 上右键（或 iTerm2 里 Cmd+右键，tmux 收到的是 `M-MouseDown3Pane`）：tmux 3.8 默认菜单 + **Break to Window**。绑在 root 表上**总是弹 tmux 菜单**，即使程序（如 Claude Code）接管了鼠标。
 - 状态栏 window 标签右键：**Join Here (Side/Below)** 把该 window 并入当前 window、Rename、Kill、New After/At End。实现上用 `run-shell -C` 先展开 window id，再以当前 window 为目标弹菜单（3.8 下以非当前 window 的 pane 为目标时菜单不显示）。
 - 状态栏 session 名右键：Switch To（非当前）、Clear Claude Mark（有 `@cc_s` 时）、Rename、Kill（当前 session 置灰）、New Session。session 和 window 标签右键都触发 `MouseDown3Status`，靠 `if -F "#{==:#{mouse_status_range},session}"` 分流；菜单项的条件写成 `##{?...}`，让 run-shell -C 只展开内层值、由 display-menu 判断显隐（否则展开成空串会被当成分隔线导致参数错位）。
+- 触屏（手机 / iPad 没有右键）：**点当前**这个 session / window 标签，弹出和右键相同的菜单；点其他标签照常切换。iOS 客户端会把双击当成自己的手势（只有震动、不发给 tmux），所以没用 DoubleClick1Status。实现：`MouseDown1Status` 先 `run-shell -C` 按鼠标目标算出“点的是不是当前项”存进 `@tap_cur`，再 `switch-client -t =`，最后 `if -F "#{@tap_cur}"` 执行 `MouseDown3Status` 同样的命令。iTerm2 上点当前项也会弹菜单（原来点当前项什么都不做）。
 - 状态栏**左侧**列出所有 session（status-left），点击即切换（`range=session|…`），当前 session 绿底高亮；window 列表 `status-justify right` 靠右，紧挨日期时间（status-right）。
 
 **关闭最后一个 pane**：`detach-on-destroy off`，session 被关掉时切到另一个还在的 session，不退出 tmux；关掉最后一个 session 才退出。配合 Cmd+W（`prefix x`）用。
 
 **window 自动命名**（`automatic-rename-format`）：Claude Code 的进程名是版本号（如 `2.1.309`），所以按 `^[0-9]+.[0-9]+.[0-9]+$|^claude$` 识别它，取它写进 pane 标题的对话主题（去掉开头的 `✳`/转圈字符，截到 14 字）；标题还是默认的 `Claude Code` 时用目录名。空闲 shell 用目录名，其他程序用程序名。手动改过名（automatic-rename 关闭）的 window 不受影响。名字只在 pane 有新输出时刷新。正则里不能写 `{n}`，会和 tmux 格式的花括号冲突，用 `[.]` 重复代替。
+
+**触屏客户端**（`>>> touch >>>` 块）：`@touch` = `client_termtype` 不以 `iTerm2` 开头，或 `client_width` < 100（iPad / iPhone 上的 Termius、Blink、code-server 的 xterm.js 等）。状态栏格式按每个客户端分别求值，所以只影响触屏端：隐藏额度和日期，非当前 session 名截到 6 字、window 名截到 8 字。`F1` 只在触屏端打开菜单，其他客户端照常把 F1 发给程序。菜单里关 pane、Claude 列表用 `send-keys -K -c "#{client_name}" C-a x` 复用 prefix 绑定（换前缀时这里也要改）。点击相关的适配（点当前项弹菜单、`☰` 按钮）要等确认 iOS 客户端会把点一下发给 tmux 再做。
 
 **其他**：状态栏在顶部、深灰底；`base-index 1`、`renumber-windows on`；`default-terminal tmux-256color` + RGB；`default-command "${SHELL}"`（非 login shell，避免 macOS `path_helper` 打乱 PATH）；history 50000；插件 tpm / tmux-sensible / tmux-resurrect / tmux-continuum（`@continuum-restore on`，开机自动恢复会话）；最后 `aggressive-resize off` 以兼容 iTerm2 `tmux -CC`。
 

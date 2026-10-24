@@ -47,7 +47,7 @@ install_shell() {
     curl -LsSf https://astral.sh/uv/install.sh | sh
   fi
   backup ~/.zshrc; cp "$FILES/shell/zshrc" ~/.zshrc
-  echo "  完成；新开终端生效（会自动进入 tmux main 会话）"
+  echo "  完成；新开终端生效"
 }
 
 install_vim() {

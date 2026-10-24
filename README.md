@@ -88,8 +88,9 @@ Claude Code hooks write each pane's state into tmux options. The status bar rend
 | red `!` | Waiting for you (permission request / question). A banner also shows on the status line, unless you're already looking at that pane. |
 | yellow `✓` | Finished and you haven't looked yet. Cleared when you focus that pane. |
 | blue `◐◓◑◒` | Working. The spinner advances once per second. |
+| dark blue `◌` | The turn has ended, but background work (background commands, Monitor) is still running. Claude picks up again when it finishes, so nothing is needed from you. |
 
-- State is tracked per pane. It is rolled up to windows and sessions with the priority waiting > done > working, so nothing gets overwritten.
+- State is tracked per pane. It is rolled up to windows and sessions with the priority waiting > done > working > background, so nothing gets overwritten.
 - Stale badges are cleaned up when a pane exits or is killed. The cleanup checks whether a `claude` process is still running in the pane.
 - `prefix g` shows every Claude, waiting ones first, with a live preview. Press Enter to jump to one:
 
@@ -126,7 +127,7 @@ Each kind of number goes where it belongs:
 
 ## Also included
 
-- **tmux**: vi copy mode (copies to the macOS clipboard). Window names follow what's in them: Claude windows take the conversation topic, idle shells the directory name. Closing a session's last pane switches to another session instead of leaving tmux. Sessions are restored with resurrect + continuum. zsh auto-attaches to a `main` session. Requires tmux ≥ 3.8.
+- **tmux**: vi copy mode (copies to the macOS clipboard). Window names follow what's in them: Claude windows take the conversation topic, idle shells the directory name. Closing a session's last pane switches to another session instead of leaving tmux. Sessions are restored with resurrect + continuum. zsh can auto-attach to a `main` session (opt-in: `export AUTO_TMUX=1`). Requires tmux ≥ 3.8.
 - **zsh**: no framework. Uses eza / bat / fzf / zoxide / starship / autosuggestions / syntax-highlighting, plus small fzf helpers `f`, `fv`, `rgi`, `cproj`.
 - **vim**: vim-plug with NERDTree, fugitive, lightline, and more.
 - **iTerm2**: "Moshi Dark" dynamic profile (JetBrains Mono + Noto Sans Mono CJK) and the Minimal theme.

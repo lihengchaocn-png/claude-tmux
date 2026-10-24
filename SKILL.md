@@ -1,6 +1,6 @@
 ---
 name: terminal-setup
-description: 用户个人的终端环境配置：zsh（别名 ls→eza、cat→bat、ll、tmux 别名，函数 f/fv/rgi/cproj，fzf/zoxide/starship/自动补全/语法高亮，清华 Homebrew 镜像）、vim（vim-plug + NERDTree 等）、tmux（C-a 前缀、vi 复制、鼠标右键菜单含 pane/window 互转、顶部状态栏可点击切 session、resurrect+continuum、zsh 自动进入 main 会话）和 iTerm2（Moshi Dark 动态 profile、JetBrains Mono + Noto CJK、Minimal 主题与 tmux 集成选项）。当用户要在新机器上配置/恢复终端环境（zsh、别名、vim、tmux、iTerm2）、修改或排查这些配置、询问自己的别名/函数/快捷键、或想同步当前配置回本 skill 时使用。
+description: 用户个人的终端环境配置：zsh（别名 ls→eza、cat→bat、ll、tmux 别名，函数 f/fv/rgi/cproj，fzf/zoxide/starship/自动补全/语法高亮，清华 Homebrew 镜像）、vim（vim-plug + NERDTree 等）、tmux（C-a 前缀、vi 复制、鼠标右键菜单含 pane/window 互转、顶部状态栏可点击切 session、resurrect+continuum、zsh 可选自动进入 main 会话）和 iTerm2（Moshi Dark 动态 profile、JetBrains Mono + Noto CJK、Minimal 主题与 tmux 集成选项）。当用户要在新机器上配置/恢复终端环境（zsh、别名、vim、tmux、iTerm2）、修改或排查这些配置、询问自己的别名/函数/快捷键、或想同步当前配置回本 skill 时使用。
 ---
 
 # 终端环境：zsh + vim + tmux + iTerm2
@@ -64,7 +64,7 @@ bash $I iterm   # 必须在 iTerm2 未运行时执行（用 Terminal.app）bash 
 | `rgi [词]` | rg 全文搜索 → fzf 预览命中行 → `code --goto file:line` |
 | `cproj` | 从 zoxide 记过的目录里选一个（eza 树预览）→ VS Code 打开 |
 
-**tmux 自动进入**：交互 shell 自动 `tmux new -A -s main`（见下方 tmux 部分）。
+**tmux 自动进入**：默认关闭；设 `AUTO_TMUX=1` 后交互 shell 自动 `tmux new -A -s main`（见下方 tmux 部分）。
 
 ## vim 要点
 
@@ -97,16 +97,16 @@ vim-plug 管理：vim-sensible、NERDTree、commentary、surround、repeat、fug
 **其他**：状态栏在顶部、深灰底；`base-index 1`、`renumber-windows on`；`default-terminal tmux-256color` + RGB；`default-command "${SHELL}"`（非 login shell，避免 macOS `path_helper` 打乱 PATH）；history 50000；插件 tpm / tmux-sensible / tmux-resurrect / tmux-continuum（`@continuum-restore on`，开机自动恢复会话）；最后 `aggressive-resize off` 以兼容 iTerm2 `tmux -CC`。
 
 **Claude Code 状态提醒**：`~/.claude/hooks/tmux-cc.sh`（副本 `files/claude/tmux-cc.sh`；`install.sh claude` 部署：复制脚本并用 jq 幂等地挂到 `~/.claude/settings.json` 的 UserPromptSubmit / PreToolUse / PostToolUse / PermissionRequest / Notification / Stop / StopFailure / SessionEnd，与 iTerm2 的 cc-status 并列）。
-- 状态按 **pane** 记录（pane 选项 `@cc_p` = run/ask/done，`@cc_t` 时间戳），按 ask > done > run 汇总到 window 选项 `@cc_w`、session 选项 `@cc_s`，同一 window 多个 Claude 互不覆盖。状态栏据此在名字前加彩色徽标、非当前项名字染同色（格式抽成 `@cc_badge_s/w`、`@cc_name_s/w` 用 `#{E:}` 引用）：红底 `!`=等你确认，黄底 `✓`=跑完等你查看，蓝底 `◐◓◑◒` 转圈=正在跑（`@cc_spin` 按秒数取帧，`status-interval 1`）。当前 session/window 保持绿底，徽标贴在前面。
+- 状态按 **pane** 记录（pane 选项 `@cc_p` = run/ask/done/bg，`@cc_t` 时间戳），按 ask > done > run > bg 汇总到 window 选项 `@cc_w`、session 选项 `@cc_s`，同一 window 多个 Claude 互不覆盖。状态栏据此在名字前加彩色徽标、非当前项名字染同色（格式抽成 `@cc_badge_s/w`、`@cc_name_s/w` 用 `#{E:}` 引用）：红底 `!`=等你确认，黄底 `✓`=跑完等你查看，蓝底 `◐◓◑◒` 转圈=正在跑（`@cc_spin` 按秒数取帧，`status-interval 1`），暗蓝底 `◌`=后台：Stop 时 claude 进程下还挂着 `shell-snapshots/snapshot-` 子进程（后台 Bash / Monitor），标 bg 而不是 done，后台任务结束后 Claude 被唤醒会变回 run；`gc` 发现 bg 但子进程已没了就改成 done。后台 subagent 跑在 claude 进程内部，检测不到。当前 session/window 保持绿底，徽标贴在前面。
 - tmux 钩子：`client-session-changed` / `session-window-changed` / `after-select-pane` → `tmux-cc.sh focus #{pane_id}`（清该 pane 的 done）；`pane-exited` / `after-kill-pane` / `session-closed` → `tmux-cc.sh gc`（pane 里已无 `claude` 进程的残留状态清掉，再重新汇总）。钩子里的路径用 `$HOME`，单引号里的 `~` 不会展开。
-- `prefix g`：fzf popup 列出所有 Claude（等确认 > 跑完 > 在跑，同状态按时间先后），预览 pane 输出，回车跳过去；`prefix G`：直接跳到最早等你的（没有则最早跑完的）。`prefix a` 被 tmux-sensible 占为 last-window，所以没用。
+- `prefix g`：fzf popup 列出所有 Claude（等确认 > 跑完 > 在跑 > 后台，同状态按时间先后），预览 pane 输出，回车跳过去；`prefix G`：直接跳到最早等你的（没有则最早跑完的）。`prefix a` 被 tmux-sensible 占为 last-window，所以没用。
 - 等确认时 `display-message` 提示，正盯着那个 pane 时不提示；正盯着的 pane 跑完不标 done。调试：`tmux-cc.sh list`。
 - 文件：`~/.config/tmux/bin/`（副本 `files/tmux-bin/`，install.sh tmux 部署）。`prefix v` = `changes`：popup（`-d #{pane_current_path}`）里 fzf 列 `git status --porcelain -z`（-z 避免带空格路径被加引号，改名记录跳过原路径），右侧 `delta` 预览 diff，enter 用 `changes.editor` 打开 `$EDITOR`，ctrl-r 刷新。`prefix e` = `explorer <pane_id> <path>`：当前 pane 左侧 `split-window -h -b -l 30%` 跑 yazi，pane 选项 `@explorer=1` 标记，再按一次关闭。yazi 配置 `files/yazi/yazi.toml` → `~/.config/yazi/`：`ratio=[0,1,1]`，edit opener 调 `edit-popup %s`（tmux 弹窗里开 `$EDITOR`；百分号不能直接写进 yazi 的 run，否则和占位符冲突）。yazi 不用 Nerd Font 字形：iTerm2 不会回退到 Symbols Nerd Font（实测显示成方框并挤歪文件名），所以 `files/yazi/theme.toml` 关掉了文件图标（占位规则替换默认 dirs/files/exts + conds 给空图标），选中行两端的圆角换成空格，状态栏、标签栏的 Powerline 分隔符换成空。验证方法：在后台 tmux 里跑 yazi，`capture-pane` 检查没有 U+E000–F8FF 字符。`prefix d` 是 tmux 默认 detach，别占用。
 - 额度 / 用量：`~/.claude/hooks/cc-statusline.sh`（副本 `files/claude/cc-statusline.sh`）是 Claude Code 的 statusLine，输出 `模型 · ctx N%`，同时把 statusLine 输入里的 `rate_limits.five_hour/seven_day` 写进 tmux 全局选项 `@cc_5h/@cc_7d`（%）、`@cc_*_ts`（重置 epoch）、`@cc_*_at`（可读时间）；不在 tmux 里时额度直接显示在 Claude 底部。tmux 状态栏右侧 `#{E:@cc_lim}` 按 <50 绿 / <80 黄 / ≥80 红显示，≥80 带 `↻重置时间`，过了重置时间（`#{e|<:%s,ts}`）自动隐藏。注意嵌套格式每层都会做一次 strftime，条件分支里的百分号要写 `%%%%`。tmux 启动时 `tmux-cc.sh usage-cache` 从 `~/.claude.json` 的 `cachedUsageUtilization` 兜底。`prefix u` 弹窗 = `tmux-cc.sh usage`：额度进度条 + `bunx ccusage@20.0.41 daily --last 7 --offline --json` 自己排成每天一行（ccusage 自带表格按 agent/模型拆行，40 多行放不下）；放得下就按任意键（含 Esc）关闭，放不下才用 less（less 里不能绑 Esc，方向键也以 Esc 开头，实测会误退出）。所有弹窗都能 Esc 关闭；yazi 侧栏用 q 或再按 Cmd+B 关。install.sh 只在没有 statusLine 时设置，已有则提示。
 - 提示文字语言由 tmux 选项 `@cc_lang`（zh 默认 / en）决定，tmux.conf 里显式设为 zh；脚本里 `load_lang` 只在要输出文字时才读。
 - README：英文 `README.md`（主）+ 中文 `README.zh-CN.md`；展示图由 `docs/src/scene.html?lang=en|zh` 仿真渲染，`bash docs/src/render.sh` 生成 `docs/img/en/`、`docs/img/zh/` 两套，中文翻译表在 scene.html 末尾的 `EN` 对象里。
 
-**zsh 集成**（`~/.zshrc` 的 `>>> tmux >>>` 块）：交互 shell 自动 `tmux new -A -s main`（本机与 ssh 登录都生效），跳过条件：已在 tmux 内、非交互（scp/rsync）、`TERM_PROGRAM=vscode`（VS Code / code-server 终端）、`NO_TMUX=1`。
+**zsh 集成**（`~/.zshrc` 的 `>>> tmux >>>` 块）：默认不自动进入；`export AUTO_TMUX=1` 后交互 shell 自动 `tmux new -A -s main`（本机与 ssh 登录都生效），跳过条件：已在 tmux 内、非交互（scp/rsync）、`TERM_PROGRAM=vscode`（VS Code / code-server 终端）、`NO_TMUX=1`。
 
 ## iTerm2 要点
 

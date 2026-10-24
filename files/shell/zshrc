@@ -89,9 +89,9 @@ alias ta='tmux attach -t'
 alias tn='tmux new -A -s'
 alias tls='tmux ls'
 alias tl='tmux ls'
-# 本机终端和 ssh 登录都自动进入 main 会话。
-# 跳过：已在 tmux 内、非交互 shell（scp/rsync/脚本）、VS Code/code-server 内置终端、NO_TMUX=1。
-if [[ -o interactive && -t 0 && -z "$TMUX" && -z "$NO_TMUX" \
+# 新开终端默认不进 tmux，用 tn <名字> 手动进入。想自动进入 main 会话：在本行之前 export AUTO_TMUX=1。
+# 自动进入时跳过：已在 tmux 内、非交互 shell（scp/rsync/脚本）、VS Code/code-server 内置终端、NO_TMUX=1。
+if [[ -n "$AUTO_TMUX" && -o interactive && -t 0 && -z "$TMUX" && -z "$NO_TMUX" \
       && "$TERM_PROGRAM" != vscode ]] && command -v tmux >/dev/null 2>&1; then
   tmux new -A -s main
 fi

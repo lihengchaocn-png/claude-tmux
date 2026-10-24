@@ -88,8 +88,9 @@ Claude Code 的 hook 把每个 pane 的状态写进 tmux 选项，状态栏据�
 | 红底 `!` | 等你确认（权限请求 / 提问）。状态栏同时弹一行提示，你正看着那个 pane 时不弹 |
 | 黄底 `✓` | 跑完了，你还没看。切到那个 pane 后自动消失 |
 | 蓝底 `◐◓◑◒` | 正在跑，每秒转一帧 |
+| 暗蓝底 `◌` | 这一轮已结束，但后台任务还在跑（后台命令、Monitor），跑完 Claude 会自己继续，不用你管 |
 
-- 状态按 pane 记录，再按 等确认 > 跑完 > 在跑 的优先级汇总到 window 和 session，不会互相覆盖。
+- 状态按 pane 记录，再按 等确认 > 跑完 > 在跑 > 后台 的优先级汇总到 window 和 session，不会互相覆盖。
 - pane 退出或被 kill 时会清理残留的标记。判断方法是看 pane 里还有没有 `claude` 进程。
 - `prefix g` 列出所有 Claude，等确认的排最前，带实时预览，回车跳过去：
 
@@ -121,7 +122,7 @@ Claude Code 的 hook 把每个 pane 的状态写进 tmux 选项，状态栏据�
 
 ## 其他
 
-- **tmux**：vi 复制模式（复制到 macOS 剪贴板）；window 自动命名：Claude 所在的 window 用对话主题，空闲 shell 用目录名；关掉某个 session 的最后一个 pane 时切到别的 session，不退出 tmux；用 resurrect + continuum 自动恢复会话；zsh 启动时自动进入 `main` 会话。需要 tmux ≥ 3.8。
+- **tmux**：vi 复制模式（复制到 macOS 剪贴板）；window 自动命名：Claude 所在的 window 用对话主题，空闲 shell 用目录名；关掉某个 session 的最后一个 pane 时切到别的 session，不退出 tmux；用 resurrect + continuum 自动恢复会话；可选让 zsh 启动时自动进入 `main` 会话（`export AUTO_TMUX=1` 开启）。需要 tmux ≥ 3.8。
 - **zsh**：不用框架；装了 eza / bat / fzf / zoxide / starship / autosuggestions / syntax-highlighting，另有 `f` `fv` `rgi` `cproj` 几个 fzf 小工具。
 - **vim**：vim-plug + NERDTree、fugitive、lightline 等。
 - **iTerm2**：Moshi Dark 动态 profile（JetBrains Mono + Noto Sans Mono CJK），Minimal 主题。

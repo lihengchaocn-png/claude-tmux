@@ -1,12 +1,13 @@
 #!/bin/bash
 # Claude Code ↔ tmux 状态提醒
-#   状态按 pane 记录（pane 选项 @cc_p = run|ask|done，@cc_t = 进入 ask/done 的时间戳），
-#   再按优先级 ask > done > run 汇总到 window 选项 @cc_w、session 选项 @cc_s，供 ~/.tmux.conf 状态栏上色。
+#   状态按 pane 记录（pane 选项 @cc_p = run|ask|done|bg，@cc_t = 进入该状态的时间戳），
+#   bg = 这一轮已结束但还有后台 shell 在跑（run_in_background / Monitor），跑完 Claude 会自己继续；
+#   再按优先级 ask > done > run > bg 汇总到 window 选项 @cc_w、session 选项 @cc_s，供 ~/.tmux.conf 状态栏上色。
 # 用法：
 #   tmux-cc.sh                  Claude Code hook（从 stdin 读事件 JSON）
 #   tmux-cc.sh focus <pane>     tmux 切换焦点后调用：清掉该 pane 的 done，并清理残留
 #   tmux-cc.sh gc               清理 Claude 已不在的 pane 上的残留状态，并重新汇总
-#   tmux-cc.sh jump [client]    fzf 列出所有 Claude pane（等确认 > 跑完 > 在跑），回车跳过去
+#   tmux-cc.sh jump [client]    fzf 列出所有 Claude pane（等确认 > 跑完 > 在跑 > 后台），回车跳过去
 #   tmux-cc.sh next [client]    直接跳到最早开始等你的那个（没有则最早跑完的）
 #   tmux-cc.sh list             调试：输出排序后的列表
 #   tmux-cc.sh usage-cache      没有实时额度时，用 ~/.claude.json 里 Claude 缓存的额度兜底（tmux 启动时调用）
@@ -20,7 +21,7 @@ CCUSAGE=ccusage@20.0.41
 # 提示语言：tmux 全局选项 @cc_lang = zh（默认）| en；只在要输出文字时加载
 load_lang() {
   if [ "$(tmux show -gqv @cc_lang 2>/dev/null)" = en ]; then
-    L_ASK='! waiting' L_DONE='✓ done   ' L_RUN='◐ working'
+    L_ASK='! waiting' L_DONE='✓ done   ' L_RUN='◐ working' L_BG='◌ bg     '
     M_NONE='No Claude sessions' M_IDLE='No Claude is waiting for you'
     M_ASK='Claude in %s is waiting for you (prefix G to jump)'
     M_LIM='Claude limits (shared by the whole account)' M_5H='5 hours' M_7D='7 days ' M_RESET='resets'
@@ -28,7 +29,7 @@ load_lang() {
     M_NOCC='bunx / npx not found, cannot run ccusage' M_NOLIM='No limit data yet (shown after Claude'"'"'s first reply)'
     M_QUIT_KEY='press any key (Esc too) to close' M_QUIT_LESS='q to close'
   else
-    L_ASK='! 等确认' L_DONE='✓ 跑完  ' L_RUN='◐ 在跑  '
+    L_ASK='! 等确认' L_DONE='✓ 跑完  ' L_RUN='◐ 在跑  ' L_BG='◌ 后台  '
     M_NONE='没有 Claude 会话' M_IDLE='没有等你处理的 Claude'
     M_ASK='Claude 在 %s 等你确认（prefix G 跳过去）'
     M_LIM='Claude 额度（整个账号共享）' M_5H='5 小时' M_7D='7 天  ' M_RESET='重置'
@@ -42,7 +43,7 @@ load_lang() {
 sync_session() {
   local out id v args=()
   out=$(tmux list-panes -s -t "$1" -F '#{window_id} #{@cc_p}' 2>/dev/null | awk '
-    function r(s) { return s == "ask" ? 3 : s == "done" ? 2 : s == "run" ? 1 : 0 }
+    function r(s) { return s == "ask" ? 4 : s == "done" ? 3 : s == "run" ? 2 : s == "bg" ? 1 : 0 }
     { if (!($1 in w)) w[$1] = ""; if (r($2) > r(w[$1])) w[$1] = $2; if (r($2) > r(S)) S = $2 }
     END { for (k in w) print k, w[k]; print "S", S }') || return 0
   while read -r id v; do
@@ -62,23 +63,36 @@ sync_all() {
   for s in $(tmux list-sessions -F '#{session_id}' 2>/dev/null); do sync_session "$s"; done
 }
 
-# 有状态但 pane 里已经没有 claude 进程（被 kill、崩溃、SessionEnd 没触发）→ 清掉
+# tty 上的 claude 进程还挂着后台 shell 吗？Claude Code 的 Bash 工具都是 claude 下的 `zsh -c source …/shell-snapshots/…`，
+# Stop 时前台命令已结束，剩下的就是后台任务
+has_bg() {
+  local pid
+  pid=$(ps -t "${1#/dev/}" -o pid=,comm= 2>/dev/null | awk '$2 == "claude" { print $1; exit }')
+  [ -n "$pid" ] && pgrep -P "$pid" -f 'shell-snapshots/snapshot-' >/dev/null
+}
+
+# 有状态但 pane 里已经没有 claude 进程（被 kill、崩溃、SessionEnd 没触发）→ 清掉；
+# 标着 bg 但后台 shell 已经没了（被杀掉、Claude 没被唤醒）→ 改成 done
 gc() {
   local p tty st
   while IFS="$TAB" read -r p tty st; do
     [ -n "$st" ] || continue
-    ps -t "${tty#/dev/}" -o comm= 2>/dev/null | grep -qx claude || tmux set -pqu -t "$p" @cc_p
+    if ! ps -t "${tty#/dev/}" -o comm= 2>/dev/null | grep -qx claude; then
+      tmux set -pqu -t "$p" @cc_p
+    elif [ "$st" = bg ] && ! has_bg "$tty"; then
+      tmux set -pq -t "$p" @cc_p done \; set -pq -t "$p" @cc_t "$(date +%s)"
+    fi
   done < <(tmux list-panes -a -F "#{pane_id}${TAB}#{pane_tty}${TAB}#{@cc_p}" 2>/dev/null)
   sync_all
 }
 
-# 按 等确认 > 跑完 > 在跑、同状态按时间早晚 排序，输出 "pane_id<TAB>状态<TAB>显示文本"
+# 按 等确认 > 跑完 > 在跑 > 后台、同状态按时间早晚 排序，输出 "pane_id<TAB>状态<TAB>显示文本"
 list_agents() {
   load_lang
   tmux list-panes -a -F "#{@cc_p}${TAB}#{@cc_t}${TAB}#{pane_id}${TAB}#{session_name}:#{window_index}.#{pane_index}${TAB}#{pane_current_path}" |
-    awk -F'\t' -v OFS='\t' -v ask="$L_ASK" -v done="$L_DONE" -v run="$L_RUN" '$1 != "" {
-      r = $1 == "ask" ? 1 : $1 == "done" ? 2 : 3
-      label = $1 == "ask" ? ask : $1 == "done" ? done : run
+    awk -F'\t' -v OFS='\t' -v ask="$L_ASK" -v done="$L_DONE" -v run="$L_RUN" -v bg="$L_BG" '$1 != "" {
+      r = $1 == "ask" ? 1 : $1 == "done" ? 2 : $1 == "run" ? 3 : 4
+      label = $1 == "ask" ? ask : $1 == "done" ? done : $1 == "run" ? run : bg
       sub(ENVIRON["HOME"], "~", $5)
       print r, ($2 == "" ? 0 : $2), $3, $1, label "  " $4 "  " $5
     }' | sort -t"$TAB" -k1,1n -k2,2n | cut -f3-
@@ -176,7 +190,7 @@ case "$1" in
       --prompt 'Claude> ' --preview 'tmux capture-pane -ep -t {1} | tail -n 60' --preview-window 'down,70%') || exit 0
     goto_pane "${sel%%"$TAB"*}" "$2"; exit 0 ;;
   next)
-    first=$(list_agents | awk -F'\t' '$2 != "run" { print $1; exit }')
+    first=$(list_agents | awk -F'\t' '$2 == "ask" || $2 == "done" { print $1; exit }')
     if [ -z "$first" ]; then tmux display-message "$M_IDLE"; exit 0; fi
     goto_pane "$first" "$2"; exit 0 ;;
 esac
@@ -201,11 +215,13 @@ case "$ev" in
   *) exit 0 ;;
 esac
 
-IFS="$TAB" read -r sid attached wactive pactive where < <(tmux display -p -t "$TMUX_PANE" \
-  "#{session_id}${TAB}#{session_attached}${TAB}#{window_active}${TAB}#{pane_active}${TAB}#{session_name}:#{window_index}") || exit 0
+IFS="$TAB" read -r sid attached wactive pactive where tty < <(tmux display -p -t "$TMUX_PANE" \
+  "#{session_id}${TAB}#{session_attached}${TAB}#{window_active}${TAB}#{pane_active}${TAB}#{session_name}:#{window_index}${TAB}#{pane_tty}") || exit 0
 viewing=0
 [ "$attached" -gt 0 ] && [ "$wactive" = 1 ] && [ "$pactive" = 1 ] && viewing=1
 
+# 这一轮结束但后台还有任务 → bg（不用你管，跑完 Claude 会自己继续）
+[ "$ev" = Stop ] && has_bg "$tty" && st=bg
 # 正盯着的 pane 跑完了不用标 done
 [ "$st" = done ] && [ $viewing = 1 ] && st=
 
